@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager — FoxyStudio</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #0a0a0a;
+      --panel:  #111111;
+      --border: #1e1e1e;
+      --text:   #aaaaaa;
+      --muted:  #555555;
+      --accent: #8b0000;
+      --acl:    #cc2200;
+      --input-bg: #0d0d0d;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; font-family:'Share Tech Mono',monospace; background:var(--bg); color:var(--text); font-size:14px; }
+
+    /* ─────── LOGIN ─────── */
+    #login-screen {
+      position:fixed; inset:0; background:var(--bg); z-index:999;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .login-box {
+      width:340px; border:1px solid var(--border); padding:40px 30px; background:var(--panel);
+    }
+    .login-title { font-family:'VT323',monospace; font-size:1.4rem; letter-spacing:4px; color:#333; text-align:center; margin-bottom:28px; text-transform:uppercase; }
+    .login-box input { width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text); padding:10px 12px; font-family:inherit; font-size:0.9rem; outline:none; margin-bottom:10px; }
+    .login-box input:focus { border-color:#333; }
+    .login-box button { width:100%; background:transparent; border:1px solid #2a2a2a; color:#555; font-family:inherit; font-size:0.9rem; letter-spacing:2px; padding:10px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; margin-top:6px; }
+    .login-box button:hover { color:var(--text); border-color:#444; }
+    #login-error { color:#5a1010; font-size:0.78rem; letter-spacing:1px; text-align:center; min-height:18px; margin-top:8px; }
+
+    /* ─────── LAYOUT ─────── */
+    #app { display:none; height:100vh; flex-direction:column; }
+    #app.visible { display:flex; }
+
+    /* ─────── TOPBAR ─────── */
+    #topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px; height:48px; border-bottom:1px solid var(--border);
+      background:var(--panel); flex-shrink:0;
+    }
+    .topbar-title { font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:4px; color:#333; text-transform:uppercase; }
+    .topbar-actions { display:flex; gap:8px; align-items:center; }
+    .btn-sm {
+      font-family:inherit; font-size:0.75rem; letter-spacing:1px; text-transform:uppercase;
+      background:transparent; border:1px solid #2e2e2e; color:#666;
+      padding:5px 12px; cursor:pointer; transition:all 0.2s;
+    }
+    .btn-sm:hover { color:var(--text); border-color:#444; }
+    .btn-sm.danger:hover { color:#cc2200; border-color:#5a1010; }
+    .save-indicator { font-size:0.7rem; letter-spacing:1px; color:#2a2a2a; transition:color 0.5s; }
+    .save-indicator.saving { color:#555; }
+    .save-indicator.saved  { color:#2a6a2a; }
+
+    /* ─────── TABS ─────── */
+    #tabs { display:flex; border-bottom:1px solid var(--border); background:var(--panel); flex-shrink:0; }
+    .tab-btn {
+      font-family:inherit; font-size:0.78rem; letter-spacing:2px; text-transform:uppercase;
+      background:transparent; border:none; color:#383838; padding:12px 20px; cursor:pointer;
+      border-bottom:2px solid transparent; transition:all 0.2s;
+    }
+    .tab-btn:hover { color:#666; }
+    .tab-btn.active { color:var(--text); border-bottom-color:#333; }
+
+    /* ─────── CONTENT ─────── */
+    #content { flex:1; overflow-y:auto; padding:24px; }
+    .tab-pane { display:none; max-width:760px; }
+    .tab-pane.active { display:block; }
+
+    /* ─────── SECTIONS ─────── */
+    .section { margin-bottom:32px; }
+    .section-title { font-family:'VT323',monospace; font-size:0.95rem; letter-spacing:3px; text-transform:uppercase; color:#333; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:16px; }
+
+    /* ─────── FORM ─────── */
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:0.72rem; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+    .field input, .field textarea, .field select {
+      width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text);
+      padding:9px 11px; font-family:inherit; font-size:0.88rem; outline:none; resize:vertical;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color:#2e2e2e; }
+    .field select option { background:#111; }
+    .field-row { display:flex; gap:10px; }
+    .field-row .field { flex:1; }
+
+    /* ─────── BUTTONS ─────── */
+    .btn {
+      font-family:inherit; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
+      background:transparent; border:1px solid #2e2e2e; color:#666;
+      padding:8px 16px; cursor:pointer; transition:all 0.2s;
+    }
+    .btn:hover { color:var(--text); border-color:#555; }
+    .btn.primary { border-color:#5a2020; color:#aa4040; }
+    .btn.primary:hover { border-color:var(--accent); color:var(--acl); }
+    .btn.danger { }
+    .btn.danger:hover { color:#cc2200; border-color:#5a1010; }
+    .btn.success:hover { color:#2a8a2a; border-color:#1a4a1a; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+
+    /* ─────── BLOCK LIST ─────── */
+    #block-list { list-style:none; margin-bottom:14px; }
+    .block-item {
+      background:var(--panel); border:1px solid var(--border); margin-bottom:8px;
+      user-select:none; transition:border-color 0.2s;
+    }
+    .block-item.dragging { opacity:0.4; }
+    .block-item.dragover { border-color:#333; }
+
+    .block-header {
+      display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer;
+    }
+    .block-drag-handle { color:#252525; cursor:grab; font-size:1.1rem; padding:0 4px; }
+    .block-drag-handle:active { cursor:grabbing; }
+    .block-type-badge { font-size:0.68rem; letter-spacing:1px; text-transform:uppercase; color:#333; border:1px solid #1a1a1a; padding:2px 7px; }
+    .block-preview { flex:1; font-size:0.82rem; color:#3a3a3a; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .block-actions { display:flex; gap:6px; }
+    .block-del { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:0.9rem; padding:2px 6px; transition:color 0.2s; }
+    .block-del:hover { color:#cc2200; }
+    .block-edit-btn { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:0.82rem; padding:2px 6px; transition:color 0.2s; font-family:inherit; text-transform:uppercase; letter-spacing:1px; }
+    .block-edit-btn:hover { color:var(--text); }
+
+    .block-editor { padding:14px; border-top:1px solid #111; display:none; }
+    .block-editor.open { display:block; }
+
+    /* Slider */
+    .slider-wrap { display:flex; align-items:center; gap:12px; }
+    .slider-wrap input[type=range] {
+      flex:1; -webkit-appearance:none; height:4px; background:#1a1a1a;
+      border-radius:0; outline:none; border:none; padding:0;
+    }
+    .slider-wrap input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:14px; height:14px; background:var(--accent);
+      cursor:pointer; border-radius:0;
+    }
+    .slider-val { font-family:'VT323',monospace; font-size:1.1rem; color:var(--muted); min-width:38px; text-align:right; }
+
+    /* ─────── ADD BLOCK BAR ─────── */
+    #add-block-bar { display:flex; gap:6px; flex-wrap:wrap; }
+    .btn-add-block {
+      font-family:inherit; font-size:0.72rem; letter-spacing:1px; text-transform:uppercase;
+      background:transparent; border:1px solid #2e2e2e; color:#666;
+      padding:6px 12px; cursor:pointer; transition:all 0.2s;
+    }
+    .btn-add-block:hover { color:#aaa; border-color:#444; }
+
+    /* ─────── STATUS BAR ─────── */
+    .status-badge {
+      display:inline-block; font-size:0.7rem; letter-spacing:1px; text-transform:uppercase;
+      padding:3px 10px; border:1px solid #1a1a1a; color:#333; margin-bottom:16px;
+    }
+    .status-badge.active-post { border-color:#2a3a1a; color:#3a6a2a; }
+    .status-badge.no-post { border-color:#1a1a1a; color:#333; }
+
+    /* ─────── SETUP BOX ─────── */
+    #setup-box { border:1px solid #3a1515; padding:20px; background:#060606; margin-bottom:24px; }
+    .setup-title { font-family:'VT323',monospace; font-size:0.9rem; letter-spacing:3px; color:#5a2020; margin-bottom:12px; text-transform:uppercase; }
+    .bin-id-display { font-family:'VT323',monospace; font-size:1.1rem; color:#666; background:#080808; border:1px solid #1a1a1a; padding:8px 12px; letter-spacing:2px; word-break:break-all; margin:10px 0; }
+    .setup-note { font-size:0.72rem; color:#333; letter-spacing:1px; line-height:1.7; }
+
+    /* ─────── PROJECT LIST ─────── */
+    #projetos-list-mgr, #extra-btns-list { list-style:none; margin-bottom:14px; }
+    .proj-item, .btn-item {
+      display:flex; align-items:center; gap:8px; padding:10px 12px;
+      border:1px solid var(--border); background:var(--panel); margin-bottom:6px;
+    }
+    .proj-name, .btn-label { flex:1; font-size:0.85rem; color:#555; }
+    .proj-url, .btn-url { flex:2; font-size:0.72rem; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .proj-del, .btn-del { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:1rem; transition:color 0.2s; padding:2px 6px; }
+    .proj-del:hover, .btn-del:hover { color:#cc2200; }
+
+    /* ─────── COLOR PICK ─────── */
+    .color-row { display:flex; gap:10px; align-items:center; }
+    .color-row input[type=color] { width:44px; height:34px; padding:2px; background:var(--input-bg); border:1px solid var(--border); cursor:pointer; }
+    .color-row input[type=text] { flex:1; }
+
+    /* ─────── PREVIEW MINI ─────── */
+    #post-preview-mini {
+      border:1px solid var(--border); padding:16px; background:#050505;
+      font-family:'VT323',monospace; font-size:1rem; color:#3a3a3a;
+      min-height:80px; margin-bottom:14px; word-break:break-word;
+    }
+
+    /* ─────── PASS CHANGE ─────── */
+    .info-chip { font-size:0.72rem; color:#2a2a2a; letter-spacing:1px; margin-top:6px; }
+
+    /* ─────── TOAST ─────── */
+    #toast {
+      position:fixed; bottom:24px; right:24px; background:#111; border:1px solid #2a2a2a;
+      color:#555; font-size:0.78rem; letter-spacing:1px; padding:10px 18px; z-index:9999;
+      opacity:0; transform:translateY(8px); transition:all 0.3s; pointer-events:none;
+    }
+    #toast.show { opacity:1; transform:translateY(0); }
+    #toast.ok   { border-color:#1a3a1a; color:#3a7a3a; }
+    #toast.err  { border-color:#5a1010; color:#cc2200; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">Manager</div>
+    <input type="password" id="pass-input" placeholder="Password" autocomplete="current-password">
+    <button onclick="tryLogin()">Entrar</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <span class="topbar-title">FoxyStudio — Manager</span>
+    <div class="topbar-actions">
+      <span class="save-indicator" id="save-indicator">—</span>
+      <button class="btn-sm" onclick="saveAll()">💾 Guardar</button>
+      <a href="index.html" target="_blank" class="btn-sm" style="text-decoration:none">↗ Ver Site</a>
+      <button class="btn-sm danger" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="tabs">
+    <button class="tab-btn active" onclick="switchTab('publicacao')">Publicação</button>
+    <button class="tab-btn" onclick="switchTab('aparencia')">Aparência</button>
+    <button class="tab-btn" onclick="switchTab('projetos')">Projetos</button>
+    <button class="tab-btn" onclick="switchTab('config')">Configuração</button>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- ══ TAB: PUBLICAÇÃO ══ -->
+    <div class="tab-pane active" id="tab-publicacao">
+
+      <div class="section">
+        <div class="section-title">Estado da Publicação</div>
+        <div id="post-status" class="status-badge no-post">Sem publicação</div>
+
+        <div id="no-post-ui">
+          <p style="color:#333;font-size:0.82rem;letter-spacing:1px;margin-bottom:14px;">Não há nenhuma publicação no site. Cria uma abaixo.</p>
+          <button class="btn primary" onclick="createNewPost()">+ Criar Publicação</button>
+        </div>
+
+        <div id="has-post-ui" style="display:none">
+          <div class="btn-row">
+            <button class="btn primary" onclick="showPostEditor()">✎ Editar</button>
+            <button class="btn danger" onclick="deletePost()">✕ Apagar Publicação</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="section" id="post-editor-section" style="display:none">
+        <div class="section-title">Editor de Blocos</div>
+
+        <ul id="block-list"></ul>
+
+        <div id="add-block-bar">
+          <button class="btn-add-block" onclick="addBlock('text')">+ Texto</button>
+          <button class="btn-add-block" onclick="addBlock('image')">+ Imagem</button>
+          <button class="btn-add-block" onclick="addBlock('audio')">+ Áudio</button>
+          <button class="btn-add-block" onclick="addBlock('progress')">+ Barra Progresso</button>
+          <button class="btn-add-block" onclick="addBlock('divider')">+ Divisor</button>
+        </div>
+
+        <div class="btn-row" style="margin-top:20px">
+          <button class="btn primary" onclick="saveAll()">💾 Guardar Tudo</button>
+          <button class="btn" onclick="hidePostEditor()">Fechar Editor</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ TAB: APARÊNCIA ══ -->
+    <div class="tab-pane" id="tab-aparencia">
+
+      <div class="section">
+        <div class="section-title">Fundo do Site</div>
+        <div class="field">
+          <label>Tipo de Fundo</label>
+          <select id="bg-type" onchange="toggleBgInput()">
+            <option value="color">Cor</option>
+            <option value="image">Imagem (URL)</option>
+          </select>
+        </div>
+        <div class="field" id="bg-color-field">
+          <label>Cor</label>
+          <div class="color-row">
+            <input type="color" id="bg-color-pick" value="#000000" oninput="syncColorText()">
+            <input type="text"  id="bg-color-text" value="#000000" oninput="syncColorPick()" placeholder="#000000">
+          </div>
+        </div>
+        <div class="field" id="bg-image-field" style="display:none">
+          <label>URL da Imagem</label>
+          <input type="url" id="bg-image-url" placeholder="https://exemplo.com/imagem.jpg">
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Cor do Botão "Outros Projetos"</label>
+          <div class="color-row">
+            <input type="color" id="btn-color-pick" value="#aaaaaa" oninput="syncBtnColorText()">
+            <input type="text"  id="btn-color-text" value="#aaaaaa" oninput="syncBtnColorPick()" placeholder="#aaaaaa">
+          </div>
+          <div style="margin-top:8px">
+            <span style="font-size:0.7rem;color:#333;letter-spacing:1px">Pré-visualização: </span>
+            <span id="btn-preview-label" style="font-family:'VT323',monospace;font-size:1rem;letter-spacing:3px;border:1px solid #aaaaaa;padding:3px 14px;color:#aaaaaa;transition:all 0.2s">outros projetos</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="saveAll()">💾 Guardar</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Botões Extra</div>
+        <p style="color:#333;font-size:0.78rem;letter-spacing:1px;margin-bottom:14px;">Botões adicionais que aparecem acima do botão "Outros Projetos".</p>
+        <ul id="extra-btns-list"></ul>
+        <div style="border:1px solid var(--border);padding:14px;background:#050505">
+          <div class="field-row">
+            <div class="field">
+              <label>Etiqueta</label>
+              <input type="text" id="new-btn-label" placeholder="Ex: Discord">
+            </div>
+            <div class="field">
+              <label>URL</label>
+              <input type="url" id="new-btn-url" placeholder="https://...">
+            </div>
+          </div>
+          <button class="btn primary" onclick="addExtraButton()">+ Adicionar Botão</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ TAB: PROJETOS ══ -->
+    <div class="tab-pane" id="tab-projetos">
+
+      <div class="section">
+        <div class="section-title">Outros Projetos</div>
+        <p style="color:#333;font-size:0.78rem;letter-spacing:1px;margin-bottom:14px;">Estes projetos aparecem no modal quando o visitante clica "Outros Projetos".</p>
+        <ul id="projetos-list-mgr"></ul>
+
+        <div style="border:1px solid var(--border);padding:14px;background:#050505">
+          <div class="field-row">
+            <div class="field">
+              <label>Nome do Projeto</label>
+              <input type="text" id="new-proj-name" placeholder="Ex: ARG do Lifecraft">
+            </div>
+            <div class="field">
+              <label>URL</label>
+              <input type="url" id="new-proj-url" placeholder="https://...">
+            </div>
+          </div>
+          <button class="btn primary" onclick="addProject()">+ Adicionar Projeto</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ TAB: CONFIGURAÇÃO ══ -->
+    <div class="tab-pane" id="tab-config">
+
+      <div class="section">
+        <div class="section-title">JSONBin — Armazenamento</div>
+        <div id="setup-box">
+          <div class="setup-title">⚠ Setup Inicial</div>
+          <p class="setup-note">Clica em "Inicializar Bin" para criar o armazenamento de dados. Só precisas de fazer isto uma vez.</p>
+          <div id="bin-id-display" class="bin-id-display" style="display:none"></div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn primary" id="btn-init-bin" onclick="initBin()">Inicializar Bin</button>
+            <button class="btn" onclick="clearBin()">Limpar / Redefinir</button>
+          </div>
+          <div class="setup-note" style="margin-top:10px" id="bin-hint"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Alterar Password</div>
+        <div class="field">
+          <label>Password Atual</label>
+          <input type="password" id="old-pass" placeholder="Password atual">
+        </div>
+        <div class="field">
+          <label>Nova Password</label>
+          <input type="password" id="new-pass" placeholder="Nova password">
+        </div>
+        <div class="field">
+          <label>Confirmar Nova Password</label>
+          <input type="password" id="confirm-pass" placeholder="Repetir nova password">
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="changePassword()">Alterar Password</button>
+        </div>
+        <div class="info-chip">A password é guardada localmente no teu browser.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Dados Brutos</div>
+        <button class="btn" onclick="showRawData()">Ver JSON</button>
+        <pre id="raw-data" style="display:none;margin-top:12px;font-size:0.72rem;color:#333;border:1px solid var(--border);padding:14px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:300px;"></pre>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//   CONFIG
+// ════════════════════════════════════════════════════════
+const JSONBIN_KEY = '$2a$10$ufgzQUfgCs2fLK8dtBAKnuhTaok9s1.P2IwWlPX8is64S4VopQvsy';
+const DEFAULT_PASS = 'foxyadmin'; // muda isto!
+let managerPass = localStorage.getItem('mgr_pass') || DEFAULT_PASS;
+
+// ════════════════════════════════════════════════════════
+//   AUTH
+// ════════════════════════════════════════════════════════
+function tryLogin() {
+  const val = document.getElementById('pass-input').value;
+  if (val === managerPass) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    init();
+  } else {
+    document.getElementById('login-error').textContent = 'password incorreta';
+    document.getElementById('pass-input').value = '';
+  }
+}
+document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('pass-input').value = '';
+}
+
+// ════════════════════════════════════════════════════════
+//   STATE
+// ════════════════════════════════════════════════════════
+let appData = {
+  post: null,
+  settings: { backgroundType: 'color', backgroundValue: '#000000' },
+  projetos: [{ id: 'p1', name: 'ARG do Lifecraft', url: 'https://foxystudio1.github.io/PC-antigo/' }],
+  extraButtons: []
+};
+
+// ════════════════════════════════════════════════════════
+//   JSONBIN API
+// ════════════════════════════════════════════════════════
+function getBinId() { return localStorage.getItem('foxy_bin_id'); }
+
+async function fetchRemote() {
+  const id = getBinId();
+  if (!id) return null;
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (!r.ok) return null;
+    return (await r.json()).record;
+  } catch(e) { return null; }
+}
+
+async function pushRemote(data) {
+  const id = getBinId();
+  if (!id) { toast('Sem Bin configurado! Vai a Configuração → Inicializar Bin.', 'err'); return false; }
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
+      method: 'PUT',
+      headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) {
+      let errMsg = `HTTP ${r.status}`;
+      try { const j = await r.json(); errMsg = j.message || errMsg; } catch {}
+      toast(`Erro ao guardar: ${errMsg}`, 'err');
+      return false;
+    }
+    return true;
+  } catch(e) { toast(`Erro de rede: ${e.message}`, 'err'); return false; }
+}
+
+async function initBin() {
+  const btn = document.getElementById('btn-init-bin');
+  btn.textContent = 'A criar...'; btn.disabled = true;
+  try {
+    const r = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: {
+        'X-Master-Key': JSONBIN_KEY,
+        'Content-Type': 'application/json',
+        'X-Bin-Name': 'FoxyStudio',
+        'X-Bin-Private': 'true'
+      },
+      body: JSON.stringify(appData)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const id = j.metadata.id;
+    localStorage.setItem('foxy_bin_id', id);
+    showBinStatus(id);
+    toast('Bin criado com sucesso!', 'ok');
+  } catch(e) {
+    toast('Erro ao criar bin: ' + e.message, 'err');
+  }
+  btn.textContent = 'Inicializar Bin'; btn.disabled = false;
+}
+
+function clearBin() {
+  if (!confirm('Tens a certeza? Isso remove o Bin ID local.')) return;
+  localStorage.removeItem('foxy_bin_id');
+  showBinStatus(null);
+  toast('Bin ID removido. Podes inicializar um novo.', 'ok');
+}
+
+function showBinStatus(id) {
+  const el = document.getElementById('bin-id-display');
+  const hint = document.getElementById('bin-hint');
+  if (id) {
+    el.style.display = 'block';
+    el.textContent = id;
+    hint.textContent = '✓ Bin configurado. O index.html lerá automaticamente este ID através do localStorage.';
+    hint.style.color = '#2a5a2a';
+    document.getElementById('setup-box').style.borderColor = '#1a3a1a';
+    document.getElementById('btn-init-bin').textContent = 'Reinicializar Bin';
+  } else {
+    el.style.display = 'none';
+    hint.textContent = 'Sem bin configurado.';
+    hint.style.color = '#555';
+    document.getElementById('setup-box').style.borderColor = '#3a1515';
+    document.getElementById('btn-init-bin').textContent = 'Inicializar Bin';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//   SAVE / LOAD
+// ════════════════════════════════════════════════════════
+async function saveAll() {
+  setSaveIndicator('saving');
+  collectSettings();
+  const ok = await pushRemote(appData);
+  setSaveIndicator(ok ? 'saved' : 'error');
+  if (ok) toast('Guardado com sucesso!', 'ok');
+  setTimeout(() => setSaveIndicator('idle'), 3000);
+}
+
+function setSaveIndicator(state) {
+  const el = document.getElementById('save-indicator');
+  el.className = 'save-indicator';
+  el.style.color = '';
+  if (state === 'saving') { el.classList.add('saving'); el.textContent = 'A guardar...'; }
+  else if (state === 'saved') { el.classList.add('saved'); el.textContent = '✓ Guardado'; }
+  else if (state === 'error') { el.textContent = '✕ Erro'; el.style.color='#cc2200'; }
+  else { el.textContent = '—'; }
+}
+
+async function init() {
+  showBinStatus(getBinId());
+  const remote = await fetchRemote();
+  if (remote) {
+    appData = { ...appData, ...remote };
+    // ensure arrays exist
+    if (!appData.projetos) appData.projetos = [];
+    if (!appData.extraButtons) appData.extraButtons = [];
+    if (!appData.settings) appData.settings = { backgroundType:'color', backgroundValue:'#000000' };
+  }
+  refreshPostUI();
+  refreshProjetosUI();
+  refreshExtraButtonsUI();
+  loadSettingsUI();
+}
+
+// ════════════════════════════════════════════════════════
+//   TABS
+// ════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name.substring(0,5))) b.classList.add('active');
+  });
+  // fix tab active by index
+  const names = ['publicacao','aparencia','projetos','config'];
+  const idx = names.indexOf(name);
+  document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+//   POST MANAGEMENT
+// ════════════════════════════════════════════════════════
+function refreshPostUI() {
+  const hasPost = appData.post && appData.post.blocks && appData.post.blocks.length > 0;
+  const statusEl = document.getElementById('post-status');
+  document.getElementById('no-post-ui').style.display = hasPost ? 'none' : 'block';
+  document.getElementById('has-post-ui').style.display = hasPost ? 'block' : 'none';
+  statusEl.textContent = hasPost ? `Publicação ativa (${appData.post.blocks.length} bloco(s))` : 'Sem publicação';
+  statusEl.className = 'status-badge ' + (hasPost ? 'active-post' : 'no-post');
+}
+
+function createNewPost() {
+  appData.post = { blocks: [] };
+  refreshPostUI();
+  showPostEditor();
+}
+
+function showPostEditor() {
+  document.getElementById('post-editor-section').style.display = 'block';
+  renderBlockList();
+}
+
+function hidePostEditor() {
+  document.getElementById('post-editor-section').style.display = 'none';
+}
+
+function deletePost() {
+  if (!confirm('Apagar a publicação do site?')) return;
+  appData.post = null;
+  hidePostEditor();
+  refreshPostUI();
+  toast('Publicação apagada. Guarda para aplicar.', 'ok');
+}
+
+// ════════════════════════════════════════════════════════
+//   BLOCK EDITOR
+// ════════════════════════════════════════════════════════
+let dragSrc = null;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function addBlock(type) {
+  if (!appData.post) appData.post = { blocks: [] };
+  const block = { id: uid(), type };
+  if (type === 'text')     block.content = '';
+  if (type === 'image')    block.src = '';
+  if (type === 'audio')    { block.src = ''; block.label = ''; }
+  if (type === 'progress') { block.label = 'Progresso'; block.value = 0; }
+  appData.post.blocks.push(block);
+  renderBlockList();
+  // auto-open last
+  const items = document.querySelectorAll('.block-item');
+  if (items.length) openBlockEditor(items[items.length-1]);
+}
+
+function removeBlock(id) {
+  appData.post.blocks = appData.post.blocks.filter(b => b.id !== id);
+  renderBlockList();
+  refreshPostUI();
+}
+
+function renderBlockList() {
+  const ul = document.getElementById('block-list');
+  ul.innerHTML = '';
+  if (!appData.post || !appData.post.blocks) return;
+  appData.post.blocks.forEach((block, idx) => {
+    const li = document.createElement('li');
+    li.className = 'block-item';
+    li.draggable = true;
+    li.dataset.id = block.id;
+
+    const preview = getBlockPreview(block);
+    const typeName = { text:'Texto', image:'Imagem', audio:'Áudio', progress:'Progresso', divider:'Divisor' }[block.type] || block.type;
+
+    li.innerHTML = `
+      <div class="block-header">
+        <span class="block-drag-handle" title="Arrastar">⠿</span>
+        <span class="block-type-badge">${typeName}</span>
+        <span class="block-preview">${preview}</span>
+        <div class="block-actions">
+          <button class="block-edit-btn">editar</button>
+          <button class="block-del" title="Apagar">✕</button>
+        </div>
+      </div>
+      <div class="block-editor">${buildBlockEditorHtml(block)}</div>
+    `;
+
+    li.querySelector('.block-del').onclick = e => { e.stopPropagation(); removeBlock(block.id); };
+    li.querySelector('.block-edit-btn').onclick = e => { e.stopPropagation(); toggleBlockEditor(li); };
+    li.querySelector('.block-header').onclick = () => toggleBlockEditor(li);
+
+    // Bind inputs
+    bindBlockInputs(li, block);
+
+    // Drag events
+    li.addEventListener('dragstart', e => { dragSrc = li; li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    li.addEventListener('dragend', () => { li.classList.remove('dragging'); document.querySelectorAll('.block-item').forEach(i=>i.classList.remove('dragover')); });
+    li.addEventListener('dragover', e => { e.preventDefault(); li.classList.add('dragover'); e.dataTransfer.dropEffect = 'move'; });
+    li.addEventListener('dragleave', () => li.classList.remove('dragover'));
+    li.addEventListener('drop', e => {
+      e.preventDefault(); li.classList.remove('dragover');
+      if (dragSrc && dragSrc !== li) {
+        const srcId = dragSrc.dataset.id;
+        const dstId = li.dataset.id;
+        const blocks = appData.post.blocks;
+        const si = blocks.findIndex(b=>b.id===srcId);
+        const di = blocks.findIndex(b=>b.id===dstId);
+        if (si > -1 && di > -1) {
+          const [moved] = blocks.splice(si, 1);
+          blocks.splice(di, 0, moved);
+          renderBlockList();
+        }
+      }
+    });
+
+    ul.appendChild(li);
+  });
+  refreshPostUI();
+}
+
+function getBlockPreview(b) {
+  if (b.type === 'text') return esc(b.content?.slice(0,50) || '(vazio)');
+  if (b.type === 'image') return b.src ? esc(b.src.slice(0,50)+'...') : '(sem URL)';
+  if (b.type === 'audio') return b.src ? esc(b.label||b.src.slice(0,40)) : '(sem URL)';
+  if (b.type === 'progress') return `${esc(b.label||'Progresso')} — ${b.value||0}%`;
+  if (b.type === 'divider') return '———';
+  return '';
+}
+
+function buildBlockEditorHtml(b) {
+  if (b.type === 'text') return `<div class="field"><label>Texto</label><textarea rows="5" class="be-text">${esc(b.content||'')}</textarea></div>`;
+  if (b.type === 'image') return `<div class="field"><label>URL da Imagem</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>`;
+  if (b.type === 'audio') return `
+    <div class="field"><label>URL do Áudio</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>
+    <div class="field"><label>Etiqueta (opcional)</label><input type="text" class="be-label" value="${escAttr(b.label||'')}" placeholder="Ex: Tema Principal"></div>`;
+  if (b.type === 'progress') return `
+    <div class="field"><label>Etiqueta</label><input type="text" class="be-label" value="${escAttr(b.label||'Progresso')}" placeholder="Progresso"></div>
+    <div class="field"><label>Valor: <span class="be-val-label">${b.value||0}%</span></label>
+      <div class="slider-wrap">
+        <input type="range" class="be-value" min="0" max="100" step="1" value="${b.value||0}">
+        <span class="slider-val be-val-show">${b.value||0}%</span>
+      </div>
+    </div>`;
+  if (b.type === 'divider') return `<p style="color:#333;font-size:0.78rem;letter-spacing:1px">Linha divisória. Sem opções.</p>`;
+  return '';
+}
+
+function bindBlockInputs(li, block) {
+  const ed = li.querySelector('.block-editor');
+
+  const beText  = ed.querySelector('.be-text');
+  const beSrc   = ed.querySelector('.be-src');
+  const beLabel = ed.querySelector('.be-label');
+  const beVal   = ed.querySelector('.be-value');
+
+  if (beText)  beText.oninput  = () => { block.content = beText.value; li.querySelector('.block-preview').textContent = block.content.slice(0,50)||'(vazio)'; };
+  if (beSrc)   beSrc.oninput   = () => { block.src = beSrc.value; li.querySelector('.block-preview').textContent = block.src.slice(0,50)||'(sem URL)'; };
+  if (beLabel) beLabel.oninput = () => { block.label = beLabel.value; };
+
+  if (beVal) {
+    beVal.oninput = () => {
+      block.value = parseInt(beVal.value);
+      const show = ed.querySelector('.be-val-show');
+      const lblShow = ed.querySelector('.be-val-label');
+      if (show) show.textContent = block.value + '%';
+      if (lblShow) lblShow.textContent = block.value + '%';
+      li.querySelector('.block-preview').textContent = `${block.label||'Progresso'} — ${block.value}%`;
+    };
+  }
+}
+
+function toggleBlockEditor(li) {
+  const ed = li.querySelector('.block-editor');
+  const isOpen = ed.classList.contains('open');
+  // close all others
+  document.querySelectorAll('.block-editor.open').forEach(e => e.classList.remove('open'));
+  if (!isOpen) ed.classList.add('open');
+}
+function openBlockEditor(li) {
+  document.querySelectorAll('.block-editor.open').forEach(e => e.classList.remove('open'));
+  li.querySelector('.block-editor').classList.add('open');
+}
+
+// ════════════════════════════════════════════════════════
+//   SETTINGS / APPEARANCE
+// ════════════════════════════════════════════════════════
+function loadSettingsUI() {
+  const s = appData.settings || {};
+  const t = s.backgroundType || 'color';
+  document.getElementById('bg-type').value = t;
+  if (t === 'color') {
+    document.getElementById('bg-color-pick').value = s.backgroundValue || '#000000';
+    document.getElementById('bg-color-text').value = s.backgroundValue || '#000000';
+  } else {
+    document.getElementById('bg-image-url').value = s.backgroundValue || '';
+  }
+  const bc = s.btnColor || '#aaaaaa';
+  document.getElementById('btn-color-pick').value = bc;
+  document.getElementById('btn-color-text').value = bc;
+  updateBtnPreview(bc);
+  toggleBgInput();
+  refreshExtraButtonsUI();
+}
+
+function collectSettings() {
+  const t = document.getElementById('bg-type').value;
+  const v = t === 'color'
+    ? document.getElementById('bg-color-text').value
+    : document.getElementById('bg-image-url').value;
+  const btnColor = document.getElementById('btn-color-text').value || '#aaaaaa';
+  appData.settings = { backgroundType: t, backgroundValue: v, btnColor };
+}
+
+function toggleBgInput() {
+  const t = document.getElementById('bg-type').value;
+  document.getElementById('bg-color-field').style.display = t === 'color' ? 'block' : 'none';
+  document.getElementById('bg-image-field').style.display = t === 'image' ? 'block' : 'none';
+}
+
+function syncColorText() {
+  document.getElementById('bg-color-text').value = document.getElementById('bg-color-pick').value;
+}
+function syncColorPick() {
+  const v = document.getElementById('bg-color-text').value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('bg-color-pick').value = v;
+}
+function syncBtnColorText() {
+  const v = document.getElementById('btn-color-pick').value;
+  document.getElementById('btn-color-text').value = v;
+  updateBtnPreview(v);
+}
+function syncBtnColorPick() {
+  const v = document.getElementById('btn-color-text').value;
+  if (/^#[0-9a-fA-F]{3,6}$/.test(v)) {
+    document.getElementById('btn-color-pick').value = v;
+    updateBtnPreview(v);
+  }
+}
+function updateBtnPreview(color) {
+  const el = document.getElementById('btn-preview-label');
+  if (el) { el.style.color = color; el.style.borderColor = color; }
+}
+
+// ════════════════════════════════════════════════════════
+//   EXTRA BUTTONS
+// ════════════════════════════════════════════════════════
+function refreshExtraButtonsUI() {
+  const ul = document.getElementById('extra-btns-list');
+  const btns = appData.extraButtons || [];
+  ul.innerHTML = btns.length ? btns.map(b => `
+    <li class="btn-item">
+      <span class="btn-label">${esc(b.label)}</span>
+      <span class="btn-url">${esc(b.url)}</span>
+      <button class="btn-del" onclick="removeExtraButton('${escAttr(b.id)}')">✕</button>
+    </li>`).join('') : '<li style="color:#2a2a2a;font-size:0.78rem;letter-spacing:1px;padding:8px 0">Sem botões adicionais</li>';
+}
+
+function addExtraButton() {
+  const label = document.getElementById('new-btn-label').value.trim();
+  const url   = document.getElementById('new-btn-url').value.trim();
+  if (!label || !url) { toast('Preenche a etiqueta e o URL', 'err'); return; }
+  if (!appData.extraButtons) appData.extraButtons = [];
+  appData.extraButtons.push({ id: uid(), label, url });
+  document.getElementById('new-btn-label').value = '';
+  document.getElementById('new-btn-url').value   = '';
+  refreshExtraButtonsUI();
+  toast('Botão adicionado. Guarda para aplicar.', 'ok');
+}
+
+function removeExtraButton(id) {
+  appData.extraButtons = (appData.extraButtons||[]).filter(b => b.id !== id);
+  refreshExtraButtonsUI();
+}
+
+// ════════════════════════════════════════════════════════
+//   PROJETOS
+// ════════════════════════════════════════════════════════
+function refreshProjetosUI() {
+  const ul = document.getElementById('projetos-list-mgr');
+  const list = appData.projetos || [];
+  ul.innerHTML = list.length ? list.map(p => `
+    <li class="proj-item">
+      <span class="proj-name">${esc(p.name)}</span>
+      <span class="proj-url">${esc(p.url)}</span>
+      <button class="proj-del" onclick="removeProject('${escAttr(p.id)}')">✕</button>
+    </li>`).join('') : '<li style="color:#2a2a2a;font-size:0.78rem;letter-spacing:1px;padding:8px 0">Sem projetos</li>';
+}
+
+function addProject() {
+  const name = document.getElementById('new-proj-name').value.trim();
+  const url  = document.getElementById('new-proj-url').value.trim();
+  if (!name || !url) { toast('Preenche o nome e o URL', 'err'); return; }
+  appData.projetos.push({ id: uid(), name, url });
+  document.getElementById('new-proj-name').value = '';
+  document.getElementById('new-proj-url').value  = '';
+  refreshProjetosUI();
+  toast('Projeto adicionado. Guarda para aplicar.', 'ok');
+}
+
+function removeProject(id) {
+  appData.projetos = appData.projetos.filter(p => p.id !== id);
+  refreshProjetosUI();
+}
+
+// ════════════════════════════════════════════════════════
+//   PASSWORD
+// ════════════════════════════════════════════════════════
+function changePassword() {
+  const old  = document.getElementById('old-pass').value;
+  const nw   = document.getElementById('new-pass').value;
+  const conf = document.getElementById('confirm-pass').value;
+  if (old !== managerPass) { toast('Password atual incorreta', 'err'); return; }
+  if (!nw) { toast('Nova password não pode ser vazia', 'err'); return; }
+  if (nw !== conf) { toast('As passwords não coincidem', 'err'); return; }
+  managerPass = nw;
+  localStorage.setItem('mgr_pass', nw);
+  document.getElementById('old-pass').value  = '';
+  document.getElementById('new-pass').value  = '';
+  document.getElementById('confirm-pass').value = '';
+  toast('Password alterada com sucesso!', 'ok');
+}
+
+// ════════════════════════════════════════════════════════
+//   RAW DATA
+// ════════════════════════════════════════════════════════
+function showRawData() {
+  const el = document.getElementById('raw-data');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el.style.display !== 'none') el.textContent = JSON.stringify(appData, null, 2);
+}
+
+// ════════════════════════════════════════════════════════
+//   UTILS
+// ════════════════════════════════════════════════════════
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+let toastTimer;
+function toast(msg, type='ok') {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+}
+</script>
+</body>
+</html>
