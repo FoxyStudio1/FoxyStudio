@@ -83,14 +83,6 @@
     .bed{ padding:14px; border-top:1px solid #111; display:none; }
     .bed.on{ display:block; }
 
-    /* SUBTABS no editor de bloco */
-    .bed-tabs{ display:flex; gap:0; margin-bottom:14px; border-bottom:1px solid var(--border); }
-    .bed-tab{ font-family:inherit; font-size:.68rem; letter-spacing:1px; text-transform:uppercase; background:transparent; border:none; color:#383838; padding:7px 14px; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; }
-    .bed-tab:hover{ color:#666; }
-    .bed-tab.on{ color:var(--text); border-bottom-color:#555; }
-    .bed-panel{ display:none; }
-    .bed-panel.on{ display:block; }
-
     /* SLIDER */
     .slwrap{ display:flex; align-items:center; gap:12px; }
     .slwrap input[type=range]{ flex:1; -webkit-appearance:none; height:4px; background:#1a1a1a; border:none; outline:none; padding:0; }
@@ -133,21 +125,6 @@
     .crow{ display:flex; gap:10px; align-items:center; }
     .crow input[type=color]{ width:44px; height:34px; padding:2px; background:var(--inp); border:1px solid var(--border); cursor:pointer; }
     .crow input[type=text]{ flex:1; }
-
-    /* BOLD TOGGLE */
-    .toggle-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-    .toggle-btn{ font-family:inherit; font-size:.72rem; letter-spacing:1px; text-transform:uppercase; background:transparent; border:1px solid #222; color:#383838; padding:5px 12px; cursor:pointer; transition:all .2s; }
-    .toggle-btn:hover{ color:#666; border-color:#333; }
-    .toggle-btn.on{ border-color:#666; color:#aaa; background:#1a1a1a; }
-
-    /* ALINHAMENTO */
-    .align-btns{ display:flex; gap:6px; }
-    .abtn{ font-family:inherit; font-size:.8rem; background:transparent; border:1px solid #1a1a1a; color:#383838; padding:5px 10px; cursor:pointer; transition:all .2s; }
-    .abtn:hover{ border-color:#333; color:#777; }
-    .abtn.on{ border-color:#555; color:#aaa; background:#1a1a1a; }
-
-    /* NOTA DE INFO */
-    .infonote{ font-size:.7rem; color:#2a2a2a; letter-spacing:1px; line-height:1.6; border-left:2px solid #1a1a1a; padding-left:10px; margin-top:6px; }
 
     /* TOAST */
     #toast{ position:fixed; bottom:24px; right:24px; background:#111; border:1px solid #2a2a2a; color:#555; font-size:.78rem; letter-spacing:1px; padding:10px 18px; z-index:9999; opacity:0; transform:translateY(8px); transition:all .3s; pointer-events:none; }
@@ -442,19 +419,23 @@ function showBinStatus(id){
   var bel  = document.getElementById('binidel');
   var exp  = document.getElementById('expbox');
   if(id){
-    box.classList.add('ok'); tl.classList.add('ok');
+    box.classList.add('ok');
+    tl.classList.add('ok');
     tl.textContent = '✓ Bin Configurado';
     note.textContent = 'Bin ativo. Descarrega o index.html abaixo para que todos os visitantes vejam o site.';
     note.classList.add('ok');
-    bel.textContent = id; bel.style.display = 'block';
+    bel.textContent = id;
+    bel.style.display = 'block';
     exp.classList.add('on');
     document.getElementById('btn-initbin').textContent = 'Recriar Bin';
   } else {
-    box.classList.remove('ok'); tl.classList.remove('ok');
+    box.classList.remove('ok');
+    tl.classList.remove('ok');
     tl.textContent = '⚠ Sem Bin Configurado';
     note.textContent = 'Clica em "Criar Bin" para criar o armazenamento. Só precisas de fazer isto uma vez.';
     note.classList.remove('ok');
-    bel.style.display = 'none'; exp.classList.remove('on');
+    bel.style.display = 'none';
+    exp.classList.remove('on');
     document.getElementById('btn-initbin').textContent = 'Criar Bin';
   }
 }
@@ -467,6 +448,7 @@ document.getElementById('btn-setbin').onclick = function(){
   showBinStatus(id);
   document.getElementById('manual-bin-id').value = '';
   toast('Bin ID ligado! A carregar dados...','ok');
+  // reload data from this bin
   fetchRemote().then(function(remote){
     if(remote){
       D = Object.assign({post:null,settings:{backgroundType:'color',backgroundValue:'#000000',btnColor:'#aaaaaa'},projetos:[],extraButtons:[]}, remote);
@@ -493,6 +475,8 @@ document.getElementById('btn-export').onclick = function(){
   if(!id){ toast('Sem Bin ID!','err'); return; }
   var btn = this;
   btn.textContent = 'A gerar...'; btn.disabled = true;
+
+  // Build index.html from scratch with real BIN id baked in
   var html = buildIndexHtml(id);
   var blob = new Blob([html], {type:'text/html'});
   var url  = URL.createObjectURL(blob);
@@ -501,12 +485,13 @@ document.getElementById('btn-export').onclick = function(){
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+
   toast('index.html descarregado! Faz upload para o GitHub.','ok');
   btn.textContent = '⬇ Descarregar index.html'; btn.disabled = false;
 };
 
 // ═══════════════════════════════════════════
-//  BUILD INDEX HTML
+//  BUILD INDEX HTML (template embutido)
 // ═══════════════════════════════════════════
 function buildIndexHtml(binId){
   var K = KEY;
@@ -529,17 +514,17 @@ function buildIndexHtml(binId){
 +'    @keyframes flicker{0%{opacity:0}8%{opacity:.3}10%{opacity:0}20%{opacity:.6}22%{opacity:.05}35%{opacity:.9}37%{opacity:.1}50%{opacity:.95}52%{opacity:.4}65%{opacity:1}100%{opacity:1}}\n'
 +'    .blk{margin:22px 0;}\n'
 +'    .blk-text{font-family:"VT323",monospace;font-size:clamp(1.1rem,2.5vw,1.45rem);line-height:1.75;color:var(--text);text-shadow:0 0 10px rgba(200,200,200,0.18);white-space:pre-wrap;word-break:break-word;}\n'
-+'    .blk-image img{display:block;filter:brightness(.9) contrast(1.1);box-shadow:0 0 60px rgba(0,0,0,.95);}\n'
++'    .blk-image img{max-width:100%;max-height:72vh;display:block;margin:0 auto;filter:brightness(.9) contrast(1.1);box-shadow:0 0 60px rgba(0,0,0,.95);}\n'
 +'    .blk-audio{display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;}\n'
 +'    .blk-audio .lbl{font-family:"VT323",monospace;font-size:1rem;color:#555;text-transform:uppercase;letter-spacing:2px;}\n'
 +'    .blk-audio audio{height:28px;opacity:.6;}\n'
 +'    .blk-audio audio:hover{opacity:1;}\n'
 +'    .blk-prog{text-align:center;padding:8px 0;}\n'
 +'    .blk-prog .plbl{font-family:"VT323",monospace;font-size:.9rem;color:#3a3a3a;text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;}\n'
-+'    .blk-prog .track{height:5px;background:#0e0e0e;border:1px solid #1c1c1c;margin:0 auto;overflow:hidden;}\n'
++'    .blk-prog .track{width:100%;max-width:420px;height:5px;background:#0e0e0e;border:1px solid #1c1c1c;margin:0 auto;overflow:hidden;}\n'
 +'    .blk-prog .fill{height:100%;background:linear-gradient(90deg,#3a0000,var(--accent));box-shadow:0 0 12px rgba(139,0,0,.4);transition:width 1.5s cubic-bezier(.23,1,.32,1);}\n'
 +'    .blk-prog .pval{font-family:"VT323",monospace;font-size:.82rem;color:#3a3a3a;margin-top:6px;letter-spacing:2px;}\n'
-+'    .blk-div{height:1px;background:#111;margin:28px auto;}\n'
++'    .blk-div{width:50px;height:1px;background:#111;margin:28px auto;}\n'
 +'    .dots{font-family:"VT323",monospace;font-size:4rem;color:#141414;letter-spacing:14px;animation:pd 5s ease-in-out infinite;}\n'
 +'    @keyframes pd{0%,100%{opacity:.15}50%{opacity:.45}}\n'
 +'    #bottom{position:fixed;bottom:0;left:0;right:0;z-index:20;padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:9px;background:linear-gradient(to top,rgba(0,0,0,.97) 55%,transparent);}\n'
@@ -587,39 +572,11 @@ function buildIndexHtml(binId){
 +'      if(s.btnColor){var r=document.documentElement;r.style.setProperty("--btn-color",s.btnColor);r.style.setProperty("--btn-border",s.btnColor);}\n'
 +'    }\n'
 +'    function renderBlock(b){\n'
-+'      var sty="";\n'
-+'      if(b.type==="text"){\n'
-+'        sty="";\n'
-+'        if(b.color)sty+="color:"+b.color+";";\n'
-+'        if(b.fontSize)sty+="font-size:"+b.fontSize+"px;";\n'
-+'        if(b.bold)sty+="font-weight:bold;";\n'
-+'        if(b.italic)sty+="font-style:italic;";\n'
-+'        if(b.align)sty+="text-align:"+b.align+";";\n'
-+'        if(b.letterSpacing)sty+="letter-spacing:"+b.letterSpacing+"px;";\n'
-+'        return\'<div class="blk blk-text" style="\'+sty+\'">\'+eh(b.content||"")+\'</div>\';\n'
-+'      }\n'
-+'      if(b.type==="image"){\n'
-+'        if(!b.src)return"";\n'
-+'        var iw=b.imgWidth?b.imgWidth+"%":"100%";\n'
-+'        var algn=b.align||"center";\n'
-+'        var marg=algn==="left"?"0 auto 0 0":algn==="right"?"0 0 0 auto":"0 auto";\n'
-+'        return\'<div class="blk blk-image" style="text-align:\'+algn+\'"><img src="\'+ea(b.src)+\'" alt="" loading="lazy" style="max-width:\'+iw+\';max-height:72vh;margin:\'+marg+\'"></div>\';\n'
-+'      }\n'
++'      if(b.type==="text")return\'<div class="blk blk-text">\'+eh(b.content||"")+\'</div>\';\n'
++'      if(b.type==="image")return b.src?\'<div class="blk blk-image"><img src="\'+ea(b.src)+\'" alt="" loading="lazy"></div>\':"" ;\n'
 +'      if(b.type==="audio")return b.src?\'<div class="blk blk-audio">\'+(b.label?\'<span class="lbl">\'+eh(b.label)+\'</span>\':"")+\'<audio controls src="\'+ea(b.src)+"\\"></audio></div>":"";\n'
-+'      if(b.type==="progress"){\n'
-+'        var v=Math.min(100,Math.max(0,b.value||0));\n'
-+'        var tw=b.trackWidth?b.trackWidth+"px":"420px";\n'
-+'        var th=b.trackHeight?b.trackHeight+"px":"5px";\n'
-+'        var fc=b.barColor||"linear-gradient(90deg,#3a0000,#8b0000)";\n'
-+'        var bg=b.trackBg||"#0e0e0e";\n'
-+'        return\'<div class="blk blk-prog">\'+(b.label?\'<div class="plbl">\'+eh(b.label)+\'</div>\':"")+\'<div class="track" style="max-width:\'+tw+\';height:\'+th+\';background:\'+bg+\'"><div class="fill" data-v="\'+v+\'" style="width:0%;background:\'+fc+\';height:100%"></div></div><div class="pval">\'+v+\'%</div></div>\';\n'
-+'      }\n'
-+'      if(b.type==="divider"){\n'
-+'        var dw=b.divWidth?b.divWidth+"px":"50px";\n'
-+'        var dc=b.divColor||"#111";\n'
-+'        var dh=b.divHeight?b.divHeight+"px":"1px";\n'
-+'        return\'<div class="blk-div" style="width:\'+dw+\';height:\'+dh+\';background:\'+dc+\'"></div>\';\n'
-+'      }\n'
++'      if(b.type==="progress"){var v=Math.min(100,Math.max(0,b.value||0));return\'<div class="blk blk-prog">\'+(b.label?\'<div class="plbl">\'+eh(b.label)+\'</div>\':"")+\'<div class="track"><div class="fill" data-v="\'+v+\'" style="width:0%"></div></div><div class="pval">\'+v+\'%</div></div>\';}\n'
++'      if(b.type==="divider")return\'<div class="blk-div"></div>\';\n'
 +'      return"";\n'
 +'    }\n'
 +'    function renderPost(post){\n'
@@ -736,11 +693,10 @@ document.querySelectorAll('.badd').forEach(function(btn){
   btn.onclick = function(){
     if(!D.post) D.post={blocks:[]};
     var t=btn.dataset.type, b={id:uid(),type:t};
-    if(t==='text'){ b.content=''; b.color=''; b.fontSize=0; b.bold=false; b.italic=false; b.align='center'; b.letterSpacing=0; }
-    if(t==='image'){ b.src=''; b.imgWidth=100; b.align='center'; }
-    if(t==='audio'){ b.src=''; b.label=''; }
-    if(t==='progress'){ b.label='Progresso'; b.value=0; b.trackWidth=420; b.trackHeight=5; b.barColor=''; b.trackBg=''; }
-    if(t==='divider'){ b.divWidth=50; b.divHeight=1; b.divColor='#111111'; }
+    if(t==='text') b.content='';
+    if(t==='image') b.src='';
+    if(t==='audio'){b.src='';b.label='';}
+    if(t==='progress'){b.label='Progresso';b.value=0;}
     D.post.blocks.push(b);
     renderBlockList();
     var items=document.querySelectorAll('.bi');
@@ -793,275 +749,35 @@ function getPrev(b){
   if(b.type==='image') return b.src?b.src.slice(0,50):'(sem URL)';
   if(b.type==='audio') return b.src?(b.label||b.src.slice(0,40)):'(sem URL)';
   if(b.type==='progress') return (b.label||'Progresso')+' — '+(b.value||0)+'%';
-  if(b.type==='divider') return 'w:'+(b.divWidth||50)+'px  h:'+(b.divHeight||1)+'px';
+  if(b.type==='divider') return '———';
   return '';
 }
 
-// ─── BUILD EDITOR HTML COM SUB-TABS ───────────────
 function buildEdHtml(b){
-  if(b.type==='text'){
-    return '<div class="bed-tabs">'
-      +'<button class="bed-tab on" data-btab="conteudo">Conteúdo</button>'
-      +'<button class="bed-tab" data-btab="estilo">Estilo</button>'
-      +'</div>'
-      +'<div class="bed-panel on" data-bpanel="conteudo">'
-        +'<div class="f"><label>Texto</label><textarea rows="5" class="be-text">'+esc(b.content||'')+'</textarea></div>'
-      +'</div>'
-      +'<div class="bed-panel" data-bpanel="estilo">'
-        +'<div class="frow">'
-          +'<div class="f"><label>Cor do Texto</label>'
-            +'<div class="crow">'
-              +'<input type="color" class="be-color-p" value="'+(b.color||'#c8c8c8')+'">'
-              +'<input type="text" class="be-color-t" value="'+(b.color||'')+'" placeholder="Padrão (#c8c8c8)">'
-            +'</div></div>'
-          +'<div class="f"><label>Tamanho (px) <span class="be-fsvl">'+(b.fontSize||0)+'</span></label>'
-            +'<div class="slwrap">'
-              +'<input type="range" class="be-fontsize" min="0" max="80" step="1" value="'+(b.fontSize||0)+'">'
-              +'<span class="slval be-fsvs">'+(b.fontSize||0)||'auto'+'</span>'
-            +'</div>'
-            +'<p class="infonote">0 = tamanho automático</p>'
-          +'</div>'
-        +'</div>'
-        +'<div class="frow">'
-          +'<div class="f"><label>Formatação</label>'
-            +'<div class="toggle-row">'
-              +'<button class="toggle-btn be-bold'+(b.bold?' on':'')+'">B — Negrito</button>'
-              +'<button class="toggle-btn be-italic'+(b.italic?' on':'')+'"><em>I</em> — Itálico</button>'
-            +'</div>'
-          +'</div>'
-          +'<div class="f"><label>Alinhamento</label>'
-            +'<div class="align-btns">'
-              +'<button class="abtn be-align'+((!b.align||b.align==='left')?' on':'')+'" data-v="left">◀ Esq</button>'
-              +'<button class="abtn be-align'+(b.align==='center'?' on':'')+'" data-v="center">— Centro</button>'
-              +'<button class="abtn be-align'+(b.align==='right'?' on':'')+'" data-v="right">Dir ▶</button>'
-            +'</div>'
-          +'</div>'
-        +'</div>'
-        +'<div class="f"><label>Espaçamento entre letras (px) <span class="be-lsvl">'+(b.letterSpacing||0)+'</span></label>'
-          +'<div class="slwrap">'
-            +'<input type="range" class="be-lspacing" min="-3" max="20" step="1" value="'+(b.letterSpacing||0)+'">'
-            +'<span class="slval be-lsvs">'+(b.letterSpacing||0)+'</span>'
-          +'</div>'
-        +'</div>'
-      +'</div>';
-  }
-  if(b.type==='image'){
-    return '<div class="bed-tabs">'
-      +'<button class="bed-tab on" data-btab="conteudo">Conteúdo</button>'
-      +'<button class="bed-tab" data-btab="estilo">Estilo</button>'
-      +'</div>'
-      +'<div class="bed-panel on" data-bpanel="conteudo">'
-        +'<div class="f"><label>URL da Imagem</label><input type="url" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div>'
-      +'</div>'
-      +'<div class="bed-panel" data-bpanel="estilo">'
-        +'<div class="f"><label>Largura (% do container) <span class="be-iwvl">'+(b.imgWidth||100)+'</span>%</label>'
-          +'<div class="slwrap">'
-            +'<input type="range" class="be-imgwidth" min="10" max="100" step="5" value="'+(b.imgWidth||100)+'">'
-            +'<span class="slval be-iwvs">'+(b.imgWidth||100)+'%</span>'
-          +'</div>'
-        +'</div>'
-        +'<div class="f"><label>Alinhamento</label>'
-          +'<div class="align-btns">'
-            +'<button class="abtn be-align'+((!b.align||b.align==='left')?' on':'')+'" data-v="left">◀ Esq</button>'
-            +'<button class="abtn be-align'+(b.align==='center'?' on':'')+'" data-v="center">— Centro</button>'
-            +'<button class="abtn be-align'+(b.align==='right'?' on':'')+'" data-v="right">Dir ▶</button>'
-          +'</div>'
-        +'</div>'
-      +'</div>';
-  }
-  if(b.type==='audio'){
-    return '<div class="f"><label>URL do Áudio</label><input type="url" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div>'
-      +'<div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'')+'" placeholder="Ex: Tema Principal"></div>';
-  }
-  if(b.type==='progress'){
-    return '<div class="bed-tabs">'
-      +'<button class="bed-tab on" data-btab="conteudo">Conteúdo</button>'
-      +'<button class="bed-tab" data-btab="estilo">Estilo</button>'
-      +'</div>'
-      +'<div class="bed-panel on" data-bpanel="conteudo">'
-        +'<div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'Progresso')+'"></div>'
-        +'<div class="f"><label>Valor: <span class="be-vl">'+(b.value||0)+'%</span></label>'
-          +'<div class="slwrap"><input type="range" class="be-val" min="0" max="100" step="1" value="'+(b.value||0)+'"><span class="slval be-vs">'+(b.value||0)+'%</span></div>'
-        +'</div>'
-      +'</div>'
-      +'<div class="bed-panel" data-bpanel="estilo">'
-        +'<div class="frow">'
-          +'<div class="f"><label>Largura (px) <span class="be-twvl">'+(b.trackWidth||420)+'</span></label>'
-            +'<div class="slwrap"><input type="range" class="be-trackw" min="80" max="700" step="10" value="'+(b.trackWidth||420)+'"><span class="slval be-twvs">'+(b.trackWidth||420)+'</span></div>'
-          +'</div>'
-          +'<div class="f"><label>Espessura (px) <span class="be-thvl">'+(b.trackHeight||5)+'</span></label>'
-            +'<div class="slwrap"><input type="range" class="be-trackh" min="1" max="40" step="1" value="'+(b.trackHeight||5)+'"><span class="slval be-thvs">'+(b.trackHeight||5)+'</span></div>'
-          +'</div>'
-        +'</div>'
-        +'<div class="frow">'
-          +'<div class="f"><label>Cor da Barra</label>'
-            +'<div class="crow">'
-              +'<input type="color" class="be-bcolor-p" value="'+(b.barColor&&!b.barColor.startsWith('linear')?b.barColor:'#8b0000')+'">'
-              +'<input type="text" class="be-bcolor-t" value="'+(b.barColor||'')+'" placeholder="Padrão (gradiente vermelho)">'
-            +'</div>'
-            +'<p class="infonote">Aceita cor (#hex) ou gradiente CSS (linear-gradient(...))</p>'
-          +'</div>'
-          +'<div class="f"><label>Cor do Fundo da Track</label>'
-            +'<div class="crow">'
-              +'<input type="color" class="be-trbg-p" value="'+(b.trackBg||'#0e0e0e')+'">'
-              +'<input type="text" class="be-trbg-t" value="'+(b.trackBg||'')+'" placeholder="Padrão (#0e0e0e)">'
-            +'</div>'
-          +'</div>'
-        +'</div>'
-      +'</div>';
-  }
-  if(b.type==='divider'){
-    return '<div class="frow">'
-      +'<div class="f"><label>Largura (px) <span class="be-dwvl">'+(b.divWidth||50)+'</span></label>'
-        +'<div class="slwrap"><input type="range" class="be-divw" min="10" max="700" step="5" value="'+(b.divWidth||50)+'"><span class="slval be-dwvs">'+(b.divWidth||50)+'</span></div>'
-      +'</div>'
-      +'<div class="f"><label>Espessura (px) <span class="be-dhvl">'+(b.divHeight||1)+'</span></label>'
-        +'<div class="slwrap"><input type="range" class="be-divh" min="1" max="20" step="1" value="'+(b.divHeight||1)+'"><span class="slval be-dhvs">'+(b.divHeight||1)+'</span></div>'
-      +'</div>'
-    +'</div>'
-    +'<div class="f"><label>Cor da Linha</label>'
-      +'<div class="crow">'
-        +'<input type="color" class="be-dcolor-p" value="'+(b.divColor||'#111111')+'">'
-        +'<input type="text" class="be-dcolor-t" value="'+(b.divColor||'#111111')+'" placeholder="#111111">'
-      +'</div>'
-    +'</div>';
-  }
+  if(b.type==='text') return '<div class="f"><label>Texto</label><textarea rows="5" class="be-text">'+esc(b.content||'')+'</textarea></div>';
+  if(b.type==='image') return '<div class="f"><label>URL da Imagem</label><input type="text" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div>';
+  if(b.type==='audio') return '<div class="f"><label>URL do Áudio</label><input type="text" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div><div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'')+'" placeholder="Ex: Tema Principal"></div>';
+  if(b.type==='progress') return '<div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'Progresso')+'"></div><div class="f"><label>Valor: <span class="be-vl">'+(b.value||0)+'%</span></label><div class="slwrap"><input type="range" class="be-val" min="0" max="100" step="1" value="'+(b.value||0)+'"><span class="slval be-vs">'+(b.value||0)+'%</span></div></div>';
+  if(b.type==='divider') return '<p style="color:#333;font-size:.78rem;letter-spacing:1px">Linha divisória. Sem opções.</p>';
   return '';
 }
 
-// ─── BIND INPUTS ──────────────────────────
 function bindInputs(li, block){
   var ed=li.querySelector('.bed');
-
-  // Sub-tabs
-  ed.querySelectorAll('.bed-tab').forEach(function(tab){
-    tab.onclick=function(e){
-      e.stopPropagation();
-      ed.querySelectorAll('.bed-tab').forEach(function(t){t.classList.remove('on');});
-      ed.querySelectorAll('.bed-panel').forEach(function(p){p.classList.remove('on');});
-      tab.classList.add('on');
-      var panel=ed.querySelector('[data-bpanel="'+tab.dataset.btab+'"]');
-      if(panel) panel.classList.add('on');
-    };
-  });
-
-  // Texto
   var bt=ed.querySelector('.be-text');
-  if(bt) bt.oninput=function(){ block.content=bt.value; li.querySelector('.bprev').textContent=block.content.slice(0,50)||'(vazio)'; };
-
-  // Cor do texto
-  var bcp=ed.querySelector('.be-color-p'), bct=ed.querySelector('.be-color-t');
-  if(bcp) bcp.oninput=function(){ block.color=bcp.value; if(bct) bct.value=bcp.value; };
-  if(bct) bct.oninput=function(){ block.color=bct.value; if(/^#[0-9a-fA-F]{3,6}$/.test(bct.value)&&bcp) bcp.value=bct.value; };
-
-  // Tamanho fonte
-  var bfs=ed.querySelector('.be-fontsize');
-  if(bfs) bfs.oninput=function(){
-    block.fontSize=parseInt(bfs.value);
-    var vl=ed.querySelector('.be-fsvl'),vs=ed.querySelector('.be-fsvs');
-    var txt=block.fontSize||'auto';
-    if(vl) vl.textContent=txt; if(vs) vs.textContent=txt;
-  };
-
-  // Negrito
-  var bbl=ed.querySelector('.be-bold');
-  if(bbl) bbl.onclick=function(e){ e.stopPropagation(); block.bold=!block.bold; bbl.classList.toggle('on',block.bold); };
-
-  // Itálico
-  var bit=ed.querySelector('.be-italic');
-  if(bit) bit.onclick=function(e){ e.stopPropagation(); block.italic=!block.italic; bit.classList.toggle('on',block.italic); };
-
-  // Letter spacing
-  var bls=ed.querySelector('.be-lspacing');
-  if(bls) bls.oninput=function(){
-    block.letterSpacing=parseInt(bls.value);
-    var vl=ed.querySelector('.be-lsvl'),vs=ed.querySelector('.be-lsvs');
-    if(vl) vl.textContent=block.letterSpacing; if(vs) vs.textContent=block.letterSpacing;
-  };
-
-  // Alinhamento
-  ed.querySelectorAll('.be-align').forEach(function(btn){
-    btn.onclick=function(e){
-      e.stopPropagation();
-      ed.querySelectorAll('.be-align').forEach(function(b){b.classList.remove('on');});
-      btn.classList.add('on');
-      block.align=btn.dataset.v;
-    };
-  });
-
-  // Src (imagem / audio)
   var bs=ed.querySelector('.be-src');
-  if(bs) bs.oninput=function(){ block.src=bs.value; li.querySelector('.bprev').textContent=block.src.slice(0,50)||'(sem URL)'; };
-
-  // Label
   var bl=ed.querySelector('.be-label');
-  if(bl) bl.oninput=function(){ block.label=bl.value; };
-
-  // Largura imagem
-  var biw=ed.querySelector('.be-imgwidth');
-  if(biw) biw.oninput=function(){
-    block.imgWidth=parseInt(biw.value);
-    var vl=ed.querySelector('.be-iwvl'),vs=ed.querySelector('.be-iwvs');
-    if(vl) vl.textContent=block.imgWidth; if(vs) vs.textContent=block.imgWidth+'%';
-  };
-
-  // Progresso valor
   var bv=ed.querySelector('.be-val');
+  if(bt) bt.oninput=function(){ block.content=bt.value; li.querySelector('.bprev').textContent=block.content.slice(0,50)||'(vazio)'; };
+  if(bs) bs.oninput=function(){ block.src=bs.value; li.querySelector('.bprev').textContent=block.src.slice(0,50)||'(sem URL)'; };
+  if(bl) bl.oninput=function(){ block.label=bl.value; };
   if(bv) bv.oninput=function(){
     block.value=parseInt(bv.value);
     var vs=ed.querySelector('.be-vs'), vl=ed.querySelector('.be-vl');
-    if(vs) vs.textContent=block.value+'%'; if(vl) vl.textContent=block.value+'%';
+    if(vs) vs.textContent=block.value+'%';
+    if(vl) vl.textContent=block.value+'%';
     li.querySelector('.bprev').textContent=(block.label||'Progresso')+' — '+block.value+'%';
   };
-
-  // Track largura
-  var btw=ed.querySelector('.be-trackw');
-  if(btw) btw.oninput=function(){
-    block.trackWidth=parseInt(btw.value);
-    var vl=ed.querySelector('.be-twvl'),vs=ed.querySelector('.be-twvs');
-    if(vl) vl.textContent=block.trackWidth; if(vs) vs.textContent=block.trackWidth;
-  };
-
-  // Track altura
-  var bth=ed.querySelector('.be-trackh');
-  if(bth) bth.oninput=function(){
-    block.trackHeight=parseInt(bth.value);
-    var vl=ed.querySelector('.be-thvl'),vs=ed.querySelector('.be-thvs');
-    if(vl) vl.textContent=block.trackHeight; if(vs) vs.textContent=block.trackHeight;
-  };
-
-  // Cor da barra
-  var bbc=ed.querySelector('.be-bcolor-p'), bbct=ed.querySelector('.be-bcolor-t');
-  if(bbc) bbc.oninput=function(){ block.barColor=bbc.value; if(bbct) bbct.value=bbc.value; };
-  if(bbct) bbct.oninput=function(){ block.barColor=bbct.value; if(/^#[0-9a-fA-F]{3,6}$/.test(bbct.value)&&bbc) bbc.value=bbct.value; };
-
-  // Track bg
-  var btbp=ed.querySelector('.be-trbg-p'), btbt=ed.querySelector('.be-trbg-t');
-  if(btbp) btbp.oninput=function(){ block.trackBg=btbp.value; if(btbt) btbt.value=btbp.value; };
-  if(btbt) btbt.oninput=function(){ block.trackBg=btbt.value; if(/^#[0-9a-fA-F]{3,6}$/.test(btbt.value)&&btbp) btbp.value=btbt.value; };
-
-  // Divisor largura
-  var bdw=ed.querySelector('.be-divw');
-  if(bdw) bdw.oninput=function(){
-    block.divWidth=parseInt(bdw.value);
-    var vl=ed.querySelector('.be-dwvl'),vs=ed.querySelector('.be-dwvs');
-    if(vl) vl.textContent=block.divWidth; if(vs) vs.textContent=block.divWidth;
-    li.querySelector('.bprev').textContent='w:'+block.divWidth+'px  h:'+(block.divHeight||1)+'px';
-  };
-
-  // Divisor altura
-  var bdh=ed.querySelector('.be-divh');
-  if(bdh) bdh.oninput=function(){
-    block.divHeight=parseInt(bdh.value);
-    var vl=ed.querySelector('.be-dhvl'),vs=ed.querySelector('.be-dhvs');
-    if(vl) vl.textContent=block.divHeight; if(vs) vs.textContent=block.divHeight;
-    li.querySelector('.bprev').textContent='w:'+(block.divWidth||50)+'px  h:'+block.divHeight+'px';
-  };
-
-  // Divisor cor
-  var bdcp=ed.querySelector('.be-dcolor-p'), bdct=ed.querySelector('.be-dcolor-t');
-  if(bdcp) bdcp.oninput=function(){ block.divColor=bdcp.value; if(bdct) bdct.value=bdcp.value; };
-  if(bdct) bdct.oninput=function(){ block.divColor=bdct.value; if(/^#[0-9a-fA-F]{3,6}$/.test(bdct.value)&&bdcp) bdcp.value=bdct.value; };
 }
 
 function toggleEditor(li){
