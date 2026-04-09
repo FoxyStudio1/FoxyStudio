@@ -48,10 +48,10 @@
     .topbar-actions { display:flex; gap:8px; align-items:center; }
     .btn-sm {
       font-family:inherit; font-size:0.75rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid #2e2e2e; color:#666;
+      background:transparent; border:1px solid var(--border); color:var(--muted);
       padding:5px 12px; cursor:pointer; transition:all 0.2s;
     }
-    .btn-sm:hover { color:var(--text); border-color:#444; }
+    .btn-sm:hover { color:var(--text); border-color:#333; }
     .btn-sm.danger:hover { color:#cc2200; border-color:#5a1010; }
     .save-indicator { font-size:0.7rem; letter-spacing:1px; color:#2a2a2a; transition:color 0.5s; }
     .save-indicator.saving { color:#555; }
@@ -91,11 +91,11 @@
     /* ─────── BUTTONS ─────── */
     .btn {
       font-family:inherit; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid #2e2e2e; color:#666;
+      background:transparent; border:1px solid var(--border); color:var(--muted);
       padding:8px 16px; cursor:pointer; transition:all 0.2s;
     }
-    .btn:hover { color:var(--text); border-color:#555; }
-    .btn.primary { border-color:#5a2020; color:#aa4040; }
+    .btn:hover { color:var(--text); border-color:#333; }
+    .btn.primary { border-color:#3a1515; color:#8b3030; }
     .btn.primary:hover { border-color:var(--accent); color:var(--acl); }
     .btn.danger { }
     .btn.danger:hover { color:#cc2200; border-color:#5a1010; }
@@ -143,10 +143,10 @@
     #add-block-bar { display:flex; gap:6px; flex-wrap:wrap; }
     .btn-add-block {
       font-family:inherit; font-size:0.72rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid #2e2e2e; color:#666;
+      background:transparent; border:1px solid #1a1a1a; color:#363636;
       padding:6px 12px; cursor:pointer; transition:all 0.2s;
     }
-    .btn-add-block:hover { color:#aaa; border-color:#444; }
+    .btn-add-block:hover { color:#777; border-color:#2a2a2a; }
 
     /* ─────── STATUS BAR ─────── */
     .status-badge {
@@ -473,21 +473,15 @@ async function fetchRemote() {
 
 async function pushRemote(data) {
   const id = getBinId();
-  if (!id) { toast('Sem Bin configurado! Vai a Configuração → Inicializar Bin.', 'err'); return false; }
+  if (!id) { toast('Sem Bin configurado!', 'err'); return false; }
   try {
     const r = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
       method: 'PUT',
       headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!r.ok) {
-      let errMsg = `HTTP ${r.status}`;
-      try { const j = await r.json(); errMsg = j.message || errMsg; } catch {}
-      toast(`Erro ao guardar: ${errMsg}`, 'err');
-      return false;
-    }
-    return true;
-  } catch(e) { toast(`Erro de rede: ${e.message}`, 'err'); return false; }
+    return r.ok;
+  } catch(e) { return false; }
 }
 
 async function initBin() {
@@ -550,14 +544,13 @@ async function saveAll() {
   collectSettings();
   const ok = await pushRemote(appData);
   setSaveIndicator(ok ? 'saved' : 'error');
-  if (ok) toast('Guardado com sucesso!', 'ok');
+  toast(ok ? 'Guardado com sucesso!' : 'Erro ao guardar!', ok ? 'ok' : 'err');
   setTimeout(() => setSaveIndicator('idle'), 3000);
 }
 
 function setSaveIndicator(state) {
   const el = document.getElementById('save-indicator');
   el.className = 'save-indicator';
-  el.style.color = '';
   if (state === 'saving') { el.classList.add('saving'); el.textContent = 'A guardar...'; }
   else if (state === 'saved') { el.classList.add('saved'); el.textContent = '✓ Guardado'; }
   else if (state === 'error') { el.textContent = '✕ Erro'; el.style.color='#cc2200'; }
@@ -727,30 +720,108 @@ function getBlockPreview(b) {
 }
 
 function buildBlockEditorHtml(b) {
-  if (b.type === 'text') return `<div class="field"><label>Texto</label><textarea rows="5" class="be-text">${esc(b.content||'')}</textarea></div>`;
-  if (b.type === 'image') return `<div class="field"><label>URL da Imagem</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>`;
+  if (b.type === 'text') return `
+    <div class="field"><label>Texto</label><textarea rows="5" class="be-text">${esc(b.content||'')}</textarea></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cor do Texto</label>
+        <div class="color-row">
+          <input type="color" class="be-color-pick" value="${escAttr(b.color||'#c8c8c8')}">
+          <input type="text"  class="be-color-text" value="${escAttr(b.color||'#c8c8c8')}" placeholder="#c8c8c8">
+        </div>
+      </div>
+      <div class="field">
+        <label>Tamanho: <span class="be-fs-label">${b.fontSize||1.45}rem</span></label>
+        <div class="slider-wrap">
+          <input type="range" class="be-fontsize" min="0.8" max="4" step="0.05" value="${b.fontSize||1.45}">
+          <span class="slider-val be-fs-show">${b.fontSize||1.45}rem</span>
+        </div>
+      </div>
+    </div>`;
+
+  if (b.type === 'image') return `
+    <div class="field"><label>URL da Imagem</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Largura máx: <span class="be-mw-label">${b.maxWidth||100}%</span></label>
+        <div class="slider-wrap">
+          <input type="range" class="be-maxwidth" min="10" max="100" step="5" value="${b.maxWidth||100}">
+          <span class="slider-val be-mw-show">${b.maxWidth||100}%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Altura máx: <span class="be-mh-label">${b.maxHeight||72}vh</span></label>
+        <div class="slider-wrap">
+          <input type="range" class="be-maxheight" min="10" max="100" step="5" value="${b.maxHeight||72}">
+          <span class="slider-val be-mh-show">${b.maxHeight||72}vh</span>
+        </div>
+      </div>
+    </div>`;
+
   if (b.type === 'audio') return `
     <div class="field"><label>URL do Áudio</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>
     <div class="field"><label>Etiqueta (opcional)</label><input type="text" class="be-label" value="${escAttr(b.label||'')}" placeholder="Ex: Tema Principal"></div>`;
+
   if (b.type === 'progress') return `
     <div class="field"><label>Etiqueta</label><input type="text" class="be-label" value="${escAttr(b.label||'Progresso')}" placeholder="Progresso"></div>
-    <div class="field"><label>Valor: <span class="be-val-label">${b.value||0}%</span></label>
+    <div class="field">
+      <label>Valor: <span class="be-val-label">${b.value||0}%</span></label>
       <div class="slider-wrap">
         <input type="range" class="be-value" min="0" max="100" step="1" value="${b.value||0}">
         <span class="slider-val be-val-show">${b.value||0}%</span>
       </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cor da Barra</label>
+        <div class="color-row">
+          <input type="color" class="be-color-pick" value="${escAttr(b.color||'#8b0000')}">
+          <input type="text"  class="be-color-text" value="${escAttr(b.color||'#8b0000')}" placeholder="#8b0000">
+        </div>
+      </div>
+      <div class="field">
+        <label>Espessura: <span class="be-h-label">${b.barHeight||5}px</span></label>
+        <div class="slider-wrap">
+          <input type="range" class="be-barheight" min="2" max="24" step="1" value="${b.barHeight||5}">
+          <span class="slider-val be-h-show">${b.barHeight||5}px</span>
+        </div>
+      </div>
     </div>`;
-  if (b.type === 'divider') return `<p style="color:#333;font-size:0.78rem;letter-spacing:1px">Linha divisória. Sem opções.</p>`;
+
+  if (b.type === 'divider') return `
+    <div class="field-row">
+      <div class="field">
+        <label>Cor</label>
+        <div class="color-row">
+          <input type="color" class="be-color-pick" value="${escAttr(b.color||'#111111')}">
+          <input type="text"  class="be-color-text" value="${escAttr(b.color||'#111111')}" placeholder="#111111">
+        </div>
+      </div>
+      <div class="field">
+        <label>Espessura: <span class="be-h-label">${b.divHeight||1}px</span></label>
+        <div class="slider-wrap">
+          <input type="range" class="be-divheight" min="1" max="8" step="1" value="${b.divHeight||1}">
+          <span class="slider-val be-h-show">${b.divHeight||1}px</span>
+        </div>
+      </div>
+    </div>`;
   return '';
 }
 
 function bindBlockInputs(li, block) {
   const ed = li.querySelector('.block-editor');
 
-  const beText  = ed.querySelector('.be-text');
-  const beSrc   = ed.querySelector('.be-src');
-  const beLabel = ed.querySelector('.be-label');
-  const beVal   = ed.querySelector('.be-value');
+  const beText      = ed.querySelector('.be-text');
+  const beSrc       = ed.querySelector('.be-src');
+  const beLabel     = ed.querySelector('.be-label');
+  const beVal       = ed.querySelector('.be-value');
+  const beColorPick = ed.querySelector('.be-color-pick');
+  const beColorText = ed.querySelector('.be-color-text');
+  const beFontsize  = ed.querySelector('.be-fontsize');
+  const beMaxwidth  = ed.querySelector('.be-maxwidth');
+  const beMaxheight = ed.querySelector('.be-maxheight');
+  const beBarheight = ed.querySelector('.be-barheight');
+  const beDivheight = ed.querySelector('.be-divheight');
 
   if (beText)  beText.oninput  = () => { block.content = beText.value; li.querySelector('.block-preview').textContent = block.content.slice(0,50)||'(vazio)'; };
   if (beSrc)   beSrc.oninput   = () => { block.src = beSrc.value; li.querySelector('.block-preview').textContent = block.src.slice(0,50)||'(sem URL)'; };
@@ -766,6 +837,50 @@ function bindBlockInputs(li, block) {
       li.querySelector('.block-preview').textContent = `${block.label||'Progresso'} — ${block.value}%`;
     };
   }
+
+  // Color sync (shared by text, progress, divider)
+  function applyColor(v) {
+    block.color = v;
+    if (beColorPick && /^#[0-9a-fA-F]{3,6}$/.test(v)) beColorPick.value = v.length === 4 ? v : (v.length === 7 ? v : beColorPick.value);
+    if (beColorText) beColorText.value = v;
+  }
+  if (beColorPick) beColorPick.oninput = () => applyColor(beColorPick.value);
+  if (beColorText) beColorText.oninput = () => { if (/^#[0-9a-fA-F]{6}$/.test(beColorText.value)) applyColor(beColorText.value); };
+
+  if (beFontsize) beFontsize.oninput = () => {
+    block.fontSize = parseFloat(beFontsize.value);
+    const lbl = ed.querySelector('.be-fs-label'), show = ed.querySelector('.be-fs-show');
+    if (lbl) lbl.textContent = block.fontSize + 'rem';
+    if (show) show.textContent = block.fontSize + 'rem';
+  };
+
+  if (beMaxwidth) beMaxwidth.oninput = () => {
+    block.maxWidth = parseInt(beMaxwidth.value);
+    const lbl = ed.querySelector('.be-mw-label'), show = ed.querySelector('.be-mw-show');
+    if (lbl) lbl.textContent = block.maxWidth + '%';
+    if (show) show.textContent = block.maxWidth + '%';
+  };
+
+  if (beMaxheight) beMaxheight.oninput = () => {
+    block.maxHeight = parseInt(beMaxheight.value);
+    const lbl = ed.querySelector('.be-mh-label'), show = ed.querySelector('.be-mh-show');
+    if (lbl) lbl.textContent = block.maxHeight + 'vh';
+    if (show) show.textContent = block.maxHeight + 'vh';
+  };
+
+  if (beBarheight) beBarheight.oninput = () => {
+    block.barHeight = parseInt(beBarheight.value);
+    const lbl = ed.querySelector('.be-h-label'), show = ed.querySelector('.be-h-show');
+    if (lbl) lbl.textContent = block.barHeight + 'px';
+    if (show) show.textContent = block.barHeight + 'px';
+  };
+
+  if (beDivheight) beDivheight.oninput = () => {
+    block.divHeight = parseInt(beDivheight.value);
+    const lbl = ed.querySelector('.be-h-label'), show = ed.querySelector('.be-h-show');
+    if (lbl) lbl.textContent = block.divHeight + 'px';
+    if (show) show.textContent = block.divHeight + 'px';
+  };
 }
 
 function toggleBlockEditor(li) {
