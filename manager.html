@@ -6,1055 +6,884 @@
   <title>Manager — FoxyStudio</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:     #0a0a0a;
-      --panel:  #111111;
-      --border: #1e1e1e;
-      --text:   #aaaaaa;
-      --muted:  #555555;
-      --accent: #8b0000;
-      --acl:    #cc2200;
-      --input-bg: #0d0d0d;
-    }
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html,body { height:100%; font-family:'Share Tech Mono',monospace; background:var(--bg); color:var(--text); font-size:14px; }
+    :root{ --bg:#0a0a0a; --panel:#111; --border:#1e1e1e; --text:#aaa; --muted:#555; --accent:#8b0000; --acl:#cc2200; --inp:#0d0d0d; }
+    *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+    html,body{ height:100%; font-family:'Share Tech Mono',monospace; background:var(--bg); color:var(--text); font-size:14px; }
 
-    /* ─────── LOGIN ─────── */
-    #login-screen {
-      position:fixed; inset:0; background:var(--bg); z-index:999;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .login-box {
-      width:340px; border:1px solid var(--border); padding:40px 30px; background:var(--panel);
-    }
-    .login-title { font-family:'VT323',monospace; font-size:1.4rem; letter-spacing:4px; color:#333; text-align:center; margin-bottom:28px; text-transform:uppercase; }
-    .login-box input { width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text); padding:10px 12px; font-family:inherit; font-size:0.9rem; outline:none; margin-bottom:10px; }
-    .login-box input:focus { border-color:#333; }
-    .login-box button { width:100%; background:transparent; border:1px solid #2a2a2a; color:#555; font-family:inherit; font-size:0.9rem; letter-spacing:2px; padding:10px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; margin-top:6px; }
-    .login-box button:hover { color:var(--text); border-color:#444; }
-    #login-error { color:#5a1010; font-size:0.78rem; letter-spacing:1px; text-align:center; min-height:18px; margin-top:8px; }
+    /* LOGIN */
+    #login{ position:fixed; inset:0; background:var(--bg); z-index:999; display:flex; align-items:center; justify-content:center; }
+    .lbox{ width:320px; border:1px solid var(--border); padding:40px 28px; background:var(--panel); }
+    .ltitle{ font-family:'VT323',monospace; font-size:1.4rem; letter-spacing:4px; color:#333; text-align:center; margin-bottom:24px; text-transform:uppercase; }
+    .lbox input{ width:100%; background:var(--inp); border:1px solid var(--border); color:var(--text); padding:10px 12px; font-family:inherit; font-size:.9rem; outline:none; margin-bottom:8px; }
+    .lbox input:focus{ border-color:#333; }
+    .lbox button{ width:100%; background:transparent; border:1px solid #2a2a2a; color:#555; font-family:inherit; font-size:.9rem; letter-spacing:2px; padding:10px; cursor:pointer; text-transform:uppercase; transition:all .2s; margin-top:4px; }
+    .lbox button:hover{ color:var(--text); border-color:#444; }
+    #lerr{ color:#5a1010; font-size:.78rem; letter-spacing:1px; text-align:center; min-height:18px; margin-top:8px; }
 
-    /* ─────── LAYOUT ─────── */
-    #app { display:none; height:100vh; flex-direction:column; }
-    #app.visible { display:flex; }
+    /* LAYOUT */
+    #app{ display:none; height:100vh; flex-direction:column; }
+    #app.on{ display:flex; }
 
-    /* ─────── TOPBAR ─────── */
-    #topbar {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 20px; height:48px; border-bottom:1px solid var(--border);
-      background:var(--panel); flex-shrink:0;
-    }
-    .topbar-title { font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:4px; color:#333; text-transform:uppercase; }
-    .topbar-actions { display:flex; gap:8px; align-items:center; }
-    .btn-sm {
-      font-family:inherit; font-size:0.75rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid var(--border); color:var(--muted);
-      padding:5px 12px; cursor:pointer; transition:all 0.2s;
-    }
-    .btn-sm:hover { color:var(--text); border-color:#333; }
-    .btn-sm.danger:hover { color:#cc2200; border-color:#5a1010; }
-    .save-indicator { font-size:0.7rem; letter-spacing:1px; color:#2a2a2a; transition:color 0.5s; }
-    .save-indicator.saving { color:#555; }
-    .save-indicator.saved  { color:#2a6a2a; }
+    /* TOPBAR */
+    #top{ display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:48px; border-bottom:1px solid var(--border); background:var(--panel); flex-shrink:0; }
+    .ttl{ font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:4px; color:#333; text-transform:uppercase; }
+    .tacts{ display:flex; gap:8px; align-items:center; }
+    .bsm{ font-family:inherit; font-size:.75rem; letter-spacing:1px; text-transform:uppercase; background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-block; }
+    .bsm:hover{ color:var(--text); border-color:#333; }
+    .bsm.d:hover{ color:#cc2200; border-color:#5a1010; }
+    #sind{ font-size:.7rem; letter-spacing:1px; color:#2a2a2a; transition:color .5s; }
+    #sind.saving{ color:#555; } #sind.saved{ color:#2a6a2a; }
 
-    /* ─────── TABS ─────── */
-    #tabs { display:flex; border-bottom:1px solid var(--border); background:var(--panel); flex-shrink:0; }
-    .tab-btn {
-      font-family:inherit; font-size:0.78rem; letter-spacing:2px; text-transform:uppercase;
-      background:transparent; border:none; color:#383838; padding:12px 20px; cursor:pointer;
-      border-bottom:2px solid transparent; transition:all 0.2s;
-    }
-    .tab-btn:hover { color:#666; }
-    .tab-btn.active { color:var(--text); border-bottom-color:#333; }
+    /* TABS */
+    #tabs{ display:flex; border-bottom:1px solid var(--border); background:var(--panel); flex-shrink:0; }
+    .tb{ font-family:inherit; font-size:.78rem; letter-spacing:2px; text-transform:uppercase; background:transparent; border:none; color:#383838; padding:12px 20px; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; }
+    .tb:hover{ color:#666; } .tb.on{ color:var(--text); border-bottom-color:#333; }
 
-    /* ─────── CONTENT ─────── */
-    #content { flex:1; overflow-y:auto; padding:24px; }
-    .tab-pane { display:none; max-width:760px; }
-    .tab-pane.active { display:block; }
+    /* CONTENT */
+    #cnt{ flex:1; overflow-y:auto; padding:24px; }
+    .pane{ display:none; max-width:760px; }
+    .pane.on{ display:block; }
 
-    /* ─────── SECTIONS ─────── */
-    .section { margin-bottom:32px; }
-    .section-title { font-family:'VT323',monospace; font-size:0.95rem; letter-spacing:3px; text-transform:uppercase; color:#333; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:16px; }
+    /* SECTIONS */
+    .sec{ margin-bottom:32px; }
+    .stl{ font-family:'VT323',monospace; font-size:.95rem; letter-spacing:3px; text-transform:uppercase; color:#333; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:16px; }
 
-    /* ─────── FORM ─────── */
-    .field { margin-bottom:14px; }
-    .field label { display:block; font-size:0.72rem; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
-    .field input, .field textarea, .field select {
-      width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text);
-      padding:9px 11px; font-family:inherit; font-size:0.88rem; outline:none; resize:vertical;
-    }
-    .field input:focus, .field textarea:focus, .field select:focus { border-color:#2e2e2e; }
-    .field select option { background:#111; }
-    .field-row { display:flex; gap:10px; }
-    .field-row .field { flex:1; }
+    /* FIELDS */
+    .f{ margin-bottom:14px; }
+    .f label{ display:block; font-size:.72rem; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+    .f input,.f textarea,.f select{ width:100%; background:var(--inp); border:1px solid var(--border); color:var(--text); padding:9px 11px; font-family:inherit; font-size:.88rem; outline:none; resize:vertical; }
+    .f input:focus,.f textarea:focus,.f select:focus{ border-color:#2e2e2e; }
+    .f select option{ background:#111; }
+    .frow{ display:flex; gap:10px; }
+    .frow .f{ flex:1; }
 
-    /* ─────── BUTTONS ─────── */
-    .btn {
-      font-family:inherit; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid var(--border); color:var(--muted);
-      padding:8px 16px; cursor:pointer; transition:all 0.2s;
-    }
-    .btn:hover { color:var(--text); border-color:#333; }
-    .btn.primary { border-color:#3a1515; color:#8b3030; }
-    .btn.primary:hover { border-color:var(--accent); color:var(--acl); }
-    .btn.danger { }
-    .btn.danger:hover { color:#cc2200; border-color:#5a1010; }
-    .btn.success:hover { color:#2a8a2a; border-color:#1a4a1a; }
-    .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    /* BUTTONS */
+    .btn{ font-family:inherit; font-size:.8rem; letter-spacing:1px; text-transform:uppercase; background:transparent; border:1px solid var(--border); color:var(--muted); padding:8px 16px; cursor:pointer; transition:all .2s; }
+    .btn:hover{ color:var(--text); border-color:#333; }
+    .btn.p{ border-color:#3a1515; color:#8b3030; }
+    .btn.p:hover{ border-color:var(--accent); color:var(--acl); }
+    .btn.g:hover{ color:#2a8a2a; border-color:#1a4a1a; }
+    .btn.danger:hover{ color:#cc2200; border-color:#5a1010; }
+    .brow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
 
-    /* ─────── BLOCK LIST ─────── */
-    #block-list { list-style:none; margin-bottom:14px; }
-    .block-item {
-      background:var(--panel); border:1px solid var(--border); margin-bottom:8px;
-      user-select:none; transition:border-color 0.2s;
-    }
-    .block-item.dragging { opacity:0.4; }
-    .block-item.dragover { border-color:#333; }
+    /* BLOCK LIST */
+    #blist{ list-style:none; margin-bottom:14px; }
+    .bi{ background:var(--panel); border:1px solid var(--border); margin-bottom:8px; }
+    .bi.dragging{ opacity:.4; } .bi.dover{ border-color:#333; }
+    .bihd{ display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; }
+    .bhdl{ color:#252525; cursor:grab; font-size:1.1rem; padding:0 4px; }
+    .bhdl:active{ cursor:grabbing; }
+    .btype{ font-size:.68rem; letter-spacing:1px; text-transform:uppercase; color:#333; border:1px solid #1a1a1a; padding:2px 7px; }
+    .bprev{ flex:1; font-size:.82rem; color:#3a3a3a; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .bacts{ display:flex; gap:6px; }
+    .bdel{ background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:.9rem; padding:2px 6px; transition:color .2s; }
+    .bdel:hover{ color:#cc2200; }
+    .bedit{ background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:.78rem; padding:2px 6px; transition:color .2s; font-family:inherit; text-transform:uppercase; letter-spacing:1px; }
+    .bedit:hover{ color:var(--text); }
+    .bed{ padding:14px; border-top:1px solid #111; display:none; }
+    .bed.on{ display:block; }
 
-    .block-header {
-      display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer;
-    }
-    .block-drag-handle { color:#252525; cursor:grab; font-size:1.1rem; padding:0 4px; }
-    .block-drag-handle:active { cursor:grabbing; }
-    .block-type-badge { font-size:0.68rem; letter-spacing:1px; text-transform:uppercase; color:#333; border:1px solid #1a1a1a; padding:2px 7px; }
-    .block-preview { flex:1; font-size:0.82rem; color:#3a3a3a; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-    .block-actions { display:flex; gap:6px; }
-    .block-del { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:0.9rem; padding:2px 6px; transition:color 0.2s; }
-    .block-del:hover { color:#cc2200; }
-    .block-edit-btn { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:0.82rem; padding:2px 6px; transition:color 0.2s; font-family:inherit; text-transform:uppercase; letter-spacing:1px; }
-    .block-edit-btn:hover { color:var(--text); }
+    /* SLIDER */
+    .slwrap{ display:flex; align-items:center; gap:12px; }
+    .slwrap input[type=range]{ flex:1; -webkit-appearance:none; height:4px; background:#1a1a1a; border:none; outline:none; padding:0; }
+    .slwrap input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:14px; height:14px; background:var(--accent); cursor:pointer; }
+    .slval{ font-family:'VT323',monospace; font-size:1.1rem; color:var(--muted); min-width:38px; text-align:right; }
 
-    .block-editor { padding:14px; border-top:1px solid #111; display:none; }
-    .block-editor.open { display:block; }
+    /* ADD BLOCKS */
+    #addbar{ display:flex; gap:6px; flex-wrap:wrap; }
+    .badd{ font-family:inherit; font-size:.72rem; letter-spacing:1px; text-transform:uppercase; background:transparent; border:1px solid #1a1a1a; color:#363636; padding:6px 12px; cursor:pointer; transition:all .2s; }
+    .badd:hover{ color:#777; border-color:#2a2a2a; }
 
-    /* Slider */
-    .slider-wrap { display:flex; align-items:center; gap:12px; }
-    .slider-wrap input[type=range] {
-      flex:1; -webkit-appearance:none; height:4px; background:#1a1a1a;
-      border-radius:0; outline:none; border:none; padding:0;
-    }
-    .slider-wrap input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance:none; width:14px; height:14px; background:var(--accent);
-      cursor:pointer; border-radius:0;
-    }
-    .slider-val { font-family:'VT323',monospace; font-size:1.1rem; color:var(--muted); min-width:38px; text-align:right; }
+    /* STATUS */
+    .sbadge{ display:inline-block; font-size:.7rem; letter-spacing:1px; text-transform:uppercase; padding:3px 10px; border:1px solid #1a1a1a; color:#333; margin-bottom:16px; }
+    .sbadge.act{ border-color:#2a3a1a; color:#3a6a2a; }
 
-    /* ─────── ADD BLOCK BAR ─────── */
-    #add-block-bar { display:flex; gap:6px; flex-wrap:wrap; }
-    .btn-add-block {
-      font-family:inherit; font-size:0.72rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid #1a1a1a; color:#363636;
-      padding:6px 12px; cursor:pointer; transition:all 0.2s;
-    }
-    .btn-add-block:hover { color:#777; border-color:#2a2a2a; }
+    /* SETUP */
+    .setupbox{ border:1px solid #3a1515; padding:20px; background:#060606; margin-bottom:16px; }
+    .setupbox.ok{ border-color:#1a3a1a; }
+    .sbtl{ font-family:'VT323',monospace; font-size:.9rem; letter-spacing:3px; color:#5a2020; margin-bottom:10px; text-transform:uppercase; }
+    .sbtl.ok{ color:#3a7a3a; }
+    .binid{ font-family:'VT323',monospace; font-size:1rem; color:#666; background:#080808; border:1px solid #1a1a1a; padding:8px 12px; letter-spacing:2px; word-break:break-all; margin:10px 0; display:none; }
+    .snote{ font-size:.72rem; color:#333; letter-spacing:1px; line-height:1.7; }
+    .snote.ok{ color:#2a5a2a; }
 
-    /* ─────── STATUS BAR ─────── */
-    .status-badge {
-      display:inline-block; font-size:0.7rem; letter-spacing:1px; text-transform:uppercase;
-      padding:3px 10px; border:1px solid #1a1a1a; color:#333; margin-bottom:16px;
-    }
-    .status-badge.active-post { border-color:#2a3a1a; color:#3a6a2a; }
-    .status-badge.no-post { border-color:#1a1a1a; color:#333; }
+    /* EXPORT BOX */
+    .expbox{ border:1px solid #1a3a1a; padding:16px; background:#030603; margin-top:14px; display:none; }
+    .expbox.on{ display:block; }
+    .extl{ font-family:'VT323',monospace; font-size:.88rem; letter-spacing:3px; color:#2a6a2a; margin-bottom:8px; text-transform:uppercase; }
+    .exnote{ font-size:.72rem; color:#1a4a1a; letter-spacing:1px; line-height:1.7; margin-bottom:12px; }
 
-    /* ─────── SETUP BOX ─────── */
-    #setup-box { border:1px solid #3a1515; padding:20px; background:#060606; margin-bottom:24px; }
-    .setup-title { font-family:'VT323',monospace; font-size:0.9rem; letter-spacing:3px; color:#5a2020; margin-bottom:12px; text-transform:uppercase; }
-    .bin-id-display { font-family:'VT323',monospace; font-size:1.1rem; color:#666; background:#080808; border:1px solid #1a1a1a; padding:8px 12px; letter-spacing:2px; word-break:break-all; margin:10px 0; }
-    .setup-note { font-size:0.72rem; color:#333; letter-spacing:1px; line-height:1.7; }
+    /* LISTS */
+    .litems{ list-style:none; margin-bottom:12px; }
+    .litem{ display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--border); background:var(--panel); margin-bottom:5px; }
+    .liname{ flex:1; font-size:.85rem; color:#555; }
+    .liurl{ flex:2; font-size:.72rem; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .lidel{ background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:1rem; transition:color .2s; padding:2px 6px; }
+    .lidel:hover{ color:#cc2200; }
 
-    /* ─────── PROJECT LIST ─────── */
-    #projetos-list-mgr, #extra-btns-list { list-style:none; margin-bottom:14px; }
-    .proj-item, .btn-item {
-      display:flex; align-items:center; gap:8px; padding:10px 12px;
-      border:1px solid var(--border); background:var(--panel); margin-bottom:6px;
-    }
-    .proj-name, .btn-label { flex:1; font-size:0.85rem; color:#555; }
-    .proj-url, .btn-url { flex:2; font-size:0.72rem; color:#333; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-    .proj-del, .btn-del { background:none; border:none; color:#2a2a2a; cursor:pointer; font-size:1rem; transition:color 0.2s; padding:2px 6px; }
-    .proj-del:hover, .btn-del:hover { color:#cc2200; }
+    /* COLOR */
+    .crow{ display:flex; gap:10px; align-items:center; }
+    .crow input[type=color]{ width:44px; height:34px; padding:2px; background:var(--inp); border:1px solid var(--border); cursor:pointer; }
+    .crow input[type=text]{ flex:1; }
 
-    /* ─────── COLOR PICK ─────── */
-    .color-row { display:flex; gap:10px; align-items:center; }
-    .color-row input[type=color] { width:44px; height:34px; padding:2px; background:var(--input-bg); border:1px solid var(--border); cursor:pointer; }
-    .color-row input[type=text] { flex:1; }
-
-    /* ─────── PREVIEW MINI ─────── */
-    #post-preview-mini {
-      border:1px solid var(--border); padding:16px; background:#050505;
-      font-family:'VT323',monospace; font-size:1rem; color:#3a3a3a;
-      min-height:80px; margin-bottom:14px; word-break:break-word;
-    }
-
-    /* ─────── PASS CHANGE ─────── */
-    .info-chip { font-size:0.72rem; color:#2a2a2a; letter-spacing:1px; margin-top:6px; }
-
-    /* ─────── TOAST ─────── */
-    #toast {
-      position:fixed; bottom:24px; right:24px; background:#111; border:1px solid #2a2a2a;
-      color:#555; font-size:0.78rem; letter-spacing:1px; padding:10px 18px; z-index:9999;
-      opacity:0; transform:translateY(8px); transition:all 0.3s; pointer-events:none;
-    }
-    #toast.show { opacity:1; transform:translateY(0); }
-    #toast.ok   { border-color:#1a3a1a; color:#3a7a3a; }
-    #toast.err  { border-color:#5a1010; color:#cc2200; }
+    /* TOAST */
+    #toast{ position:fixed; bottom:24px; right:24px; background:#111; border:1px solid #2a2a2a; color:#555; font-size:.78rem; letter-spacing:1px; padding:10px 18px; z-index:9999; opacity:0; transform:translateY(8px); transition:all .3s; pointer-events:none; }
+    #toast.on{ opacity:1; transform:translateY(0); }
+    #toast.ok{ border-color:#1a3a1a; color:#3a7a3a; }
+    #toast.err{ border-color:#5a1010; color:#cc2200; }
   </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-title">Manager</div>
-    <input type="password" id="pass-input" placeholder="Password" autocomplete="current-password">
-    <button onclick="tryLogin()">Entrar</button>
-    <div id="login-error"></div>
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="ltitle">Manager</div>
+    <input type="password" id="pinput" placeholder="Password" autocomplete="current-password">
+    <button id="lbtn">Entrar</button>
+    <div id="lerr"></div>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- APP -->
 <div id="app">
-
-  <!-- Topbar -->
-  <div id="topbar">
-    <span class="topbar-title">FoxyStudio — Manager</span>
-    <div class="topbar-actions">
-      <span class="save-indicator" id="save-indicator">—</span>
-      <button class="btn-sm" onclick="saveAll()">💾 Guardar</button>
-      <a href="index.html" target="_blank" class="btn-sm" style="text-decoration:none">↗ Ver Site</a>
-      <button class="btn-sm danger" onclick="doLogout()">Sair</button>
+  <div id="top">
+    <span class="ttl">FoxyStudio — Manager</span>
+    <div class="tacts">
+      <span id="sind">—</span>
+      <button class="bsm" id="savebtn">💾 Guardar</button>
+      <a href="index.html" target="_blank" class="bsm">↗ Ver Site</a>
+      <button class="bsm d" id="logoutbtn">Sair</button>
     </div>
   </div>
 
-  <!-- Tabs -->
   <div id="tabs">
-    <button class="tab-btn active" onclick="switchTab('publicacao')">Publicação</button>
-    <button class="tab-btn" onclick="switchTab('aparencia')">Aparência</button>
-    <button class="tab-btn" onclick="switchTab('projetos')">Projetos</button>
-    <button class="tab-btn" onclick="switchTab('config')">Configuração</button>
+    <button class="tb on" data-tab="pub">Publicação</button>
+    <button class="tb" data-tab="ap">Aparência</button>
+    <button class="tb" data-tab="proj">Projetos</button>
+    <button class="tb" data-tab="cfg">Configuração</button>
   </div>
 
-  <!-- Content -->
-  <div id="content">
+  <div id="cnt">
 
-    <!-- ══ TAB: PUBLICAÇÃO ══ -->
-    <div class="tab-pane active" id="tab-publicacao">
-
-      <div class="section">
-        <div class="section-title">Estado da Publicação</div>
-        <div id="post-status" class="status-badge no-post">Sem publicação</div>
-
-        <div id="no-post-ui">
-          <p style="color:#333;font-size:0.82rem;letter-spacing:1px;margin-bottom:14px;">Não há nenhuma publicação no site. Cria uma abaixo.</p>
-          <button class="btn primary" onclick="createNewPost()">+ Criar Publicação</button>
+    <!-- PUBLICAÇÃO -->
+    <div class="pane on" id="tab-pub">
+      <div class="sec">
+        <div class="stl">Estado</div>
+        <div id="pstatus" class="sbadge">Sem publicação</div>
+        <div id="ui-nopost">
+          <p style="color:#333;font-size:.82rem;letter-spacing:1px;margin-bottom:14px">Sem publicação ativa. Cria uma abaixo.</p>
+          <button class="btn p" id="btn-create">+ Criar Publicação</button>
         </div>
-
-        <div id="has-post-ui" style="display:none">
-          <div class="btn-row">
-            <button class="btn primary" onclick="showPostEditor()">✎ Editar</button>
-            <button class="btn danger" onclick="deletePost()">✕ Apagar Publicação</button>
+        <div id="ui-haspost" style="display:none">
+          <div class="brow">
+            <button class="btn p" id="btn-edit">✎ Editar</button>
+            <button class="btn danger" id="btn-delpost">✕ Apagar</button>
           </div>
         </div>
       </div>
-
-      <!-- Editor -->
-      <div class="section" id="post-editor-section" style="display:none">
-        <div class="section-title">Editor de Blocos</div>
-
-        <ul id="block-list"></ul>
-
-        <div id="add-block-bar">
-          <button class="btn-add-block" onclick="addBlock('text')">+ Texto</button>
-          <button class="btn-add-block" onclick="addBlock('image')">+ Imagem</button>
-          <button class="btn-add-block" onclick="addBlock('audio')">+ Áudio</button>
-          <button class="btn-add-block" onclick="addBlock('progress')">+ Barra Progresso</button>
-          <button class="btn-add-block" onclick="addBlock('divider')">+ Divisor</button>
+      <div class="sec" id="editor" style="display:none">
+        <div class="stl">Editor de Blocos</div>
+        <ul id="blist"></ul>
+        <div id="addbar">
+          <button class="badd" data-type="text">+ Texto</button>
+          <button class="badd" data-type="image">+ Imagem</button>
+          <button class="badd" data-type="audio">+ Áudio</button>
+          <button class="badd" data-type="progress">+ Progresso</button>
+          <button class="badd" data-type="divider">+ Divisor</button>
         </div>
-
-        <div class="btn-row" style="margin-top:20px">
-          <button class="btn primary" onclick="saveAll()">💾 Guardar Tudo</button>
-          <button class="btn" onclick="hidePostEditor()">Fechar Editor</button>
+        <div class="brow" style="margin-top:20px">
+          <button class="btn p" id="btn-saveall">💾 Guardar Tudo</button>
+          <button class="btn" id="btn-closeed">Fechar</button>
         </div>
       </div>
-
     </div>
 
-    <!-- ══ TAB: APARÊNCIA ══ -->
-    <div class="tab-pane" id="tab-aparencia">
-
-      <div class="section">
-        <div class="section-title">Fundo do Site</div>
-        <div class="field">
-          <label>Tipo de Fundo</label>
-          <select id="bg-type" onchange="toggleBgInput()">
+    <!-- APARÊNCIA -->
+    <div class="pane" id="tab-ap">
+      <div class="sec">
+        <div class="stl">Fundo do Site</div>
+        <div class="f">
+          <label>Tipo</label>
+          <select id="bgtype">
             <option value="color">Cor</option>
             <option value="image">Imagem (URL)</option>
           </select>
         </div>
-        <div class="field" id="bg-color-field">
+        <div class="f" id="bgcf">
           <label>Cor</label>
-          <div class="color-row">
-            <input type="color" id="bg-color-pick" value="#000000" oninput="syncColorText()">
-            <input type="text"  id="bg-color-text" value="#000000" oninput="syncColorPick()" placeholder="#000000">
+          <div class="crow">
+            <input type="color" id="bgcp" value="#000000">
+            <input type="text"  id="bgct" value="#000000" placeholder="#000000">
           </div>
         </div>
-        <div class="field" id="bg-image-field" style="display:none">
+        <div class="f" id="bgif" style="display:none">
           <label>URL da Imagem</label>
-          <input type="url" id="bg-image-url" placeholder="https://exemplo.com/imagem.jpg">
+          <input type="url" id="bgiu" placeholder="https://...">
         </div>
-        <div class="field" style="margin-top:14px">
+        <div class="f" style="margin-top:14px">
           <label>Cor do Botão "Outros Projetos"</label>
-          <div class="color-row">
-            <input type="color" id="btn-color-pick" value="#aaaaaa" oninput="syncBtnColorText()">
-            <input type="text"  id="btn-color-text" value="#aaaaaa" oninput="syncBtnColorPick()" placeholder="#aaaaaa">
+          <div class="crow">
+            <input type="color" id="btncp" value="#aaaaaa">
+            <input type="text"  id="btnct" value="#aaaaaa" placeholder="#aaaaaa">
           </div>
           <div style="margin-top:8px">
-            <span style="font-size:0.7rem;color:#333;letter-spacing:1px">Pré-visualização: </span>
-            <span id="btn-preview-label" style="font-family:'VT323',monospace;font-size:1rem;letter-spacing:3px;border:1px solid #aaaaaa;padding:3px 14px;color:#aaaaaa;transition:all 0.2s">outros projetos</span>
+            <span style="font-size:.7rem;color:#333;letter-spacing:1px">Pré-visualização: </span>
+            <span id="btnprev" style="font-family:'VT323',monospace;font-size:1rem;letter-spacing:3px;border:1px solid #aaa;padding:3px 14px;color:#aaa;transition:all .2s">outros projetos</span>
           </div>
         </div>
-        <div class="btn-row">
-          <button class="btn primary" onclick="saveAll()">💾 Guardar</button>
+        <div class="brow">
+          <button class="btn p" id="btn-saveap">💾 Guardar</button>
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-title">Botões Extra</div>
-        <p style="color:#333;font-size:0.78rem;letter-spacing:1px;margin-bottom:14px;">Botões adicionais que aparecem acima do botão "Outros Projetos".</p>
-        <ul id="extra-btns-list"></ul>
+      <div class="sec">
+        <div class="stl">Botões Extra</div>
+        <ul class="litems" id="xblist"></ul>
         <div style="border:1px solid var(--border);padding:14px;background:#050505">
-          <div class="field-row">
-            <div class="field">
-              <label>Etiqueta</label>
-              <input type="text" id="new-btn-label" placeholder="Ex: Discord">
-            </div>
-            <div class="field">
-              <label>URL</label>
-              <input type="url" id="new-btn-url" placeholder="https://...">
-            </div>
+          <div class="frow">
+            <div class="f"><label>Etiqueta</label><input type="text" id="nbl" placeholder="Ex: Discord"></div>
+            <div class="f"><label>URL</label><input type="url" id="nbu" placeholder="https://..."></div>
           </div>
-          <button class="btn primary" onclick="addExtraButton()">+ Adicionar Botão</button>
+          <button class="btn p" id="btn-addxb">+ Adicionar Botão</button>
         </div>
       </div>
-
     </div>
 
-    <!-- ══ TAB: PROJETOS ══ -->
-    <div class="tab-pane" id="tab-projetos">
-
-      <div class="section">
-        <div class="section-title">Outros Projetos</div>
-        <p style="color:#333;font-size:0.78rem;letter-spacing:1px;margin-bottom:14px;">Estes projetos aparecem no modal quando o visitante clica "Outros Projetos".</p>
-        <ul id="projetos-list-mgr"></ul>
-
+    <!-- PROJETOS -->
+    <div class="pane" id="tab-proj">
+      <div class="sec">
+        <div class="stl">Outros Projetos</div>
+        <ul class="litems" id="projlist"></ul>
         <div style="border:1px solid var(--border);padding:14px;background:#050505">
-          <div class="field-row">
-            <div class="field">
-              <label>Nome do Projeto</label>
-              <input type="text" id="new-proj-name" placeholder="Ex: ARG do Lifecraft">
-            </div>
-            <div class="field">
-              <label>URL</label>
-              <input type="url" id="new-proj-url" placeholder="https://...">
-            </div>
+          <div class="frow">
+            <div class="f"><label>Nome</label><input type="text" id="npn" placeholder="Ex: ARG do Lifecraft"></div>
+            <div class="f"><label>URL</label><input type="url" id="npu" placeholder="https://..."></div>
           </div>
-          <button class="btn primary" onclick="addProject()">+ Adicionar Projeto</button>
+          <button class="btn p" id="btn-addp">+ Adicionar Projeto</button>
         </div>
       </div>
-
     </div>
 
-    <!-- ══ TAB: CONFIGURAÇÃO ══ -->
-    <div class="tab-pane" id="tab-config">
-
-      <div class="section">
-        <div class="section-title">JSONBin — Armazenamento</div>
-        <div id="setup-box">
-          <div class="setup-title" id="setup-title-text">⚠ Sem Bin Configurado</div>
-          <p class="setup-note" id="setup-desc">Clica em "Criar Bin" para criar o armazenamento. Só precisas de fazer isto uma vez.</p>
-          <div id="bin-id-display" class="bin-id-display" style="display:none"></div>
-          <div class="btn-row" style="margin-top:12px">
-            <button class="btn primary" id="btn-init-bin" onclick="initBin()">Criar Bin</button>
-            <button class="btn" onclick="clearBin()">Resetar</button>
+    <!-- CONFIGURAÇÃO -->
+    <div class="pane" id="tab-cfg">
+      <div class="sec">
+        <div class="stl">JSONBin — Armazenamento</div>
+        <div class="setupbox" id="setupbox">
+          <div class="sbtl" id="setuptl">⚠ Sem Bin Configurado</div>
+          <p class="snote" id="setupnote">Clica em "Criar Bin" para criar o armazenamento. Só precisas de fazer isto uma vez.</p>
+          <div class="binid" id="binidel"></div>
+          <div class="brow" style="margin-top:12px">
+            <button class="btn p" id="btn-initbin">Criar Bin</button>
+            <button class="btn" id="btn-clearbin">Resetar</button>
           </div>
-          <div id="bin-hint" class="setup-note" style="margin-top:10px"></div>
         </div>
-
-        <div id="export-box" style="display:none;margin-top:16px;border:1px solid #1a3a1a;padding:18px;background:#030603;">
-          <div class="setup-title" style="color:#2a6a2a;margin-bottom:10px">↓ Exportar index.html</div>
-          <p class="setup-note" style="color:#2a4a2a;margin-bottom:14px">
-            Para o site funcionar para <strong style="color:#3a7a3a">todos os visitantes</strong>, tens de descarregar o index.html com o Bin ID já incorporado e fazer upload para o GitHub Pages.
-          </p>
-          <div class="btn-row">
-            <button class="btn primary" onclick="exportIndexHtml()" style="border-color:#2a5a2a;color:#3a8a3a">⬇ Descarregar index.html</button>
-          </div>
-          <p class="setup-note" style="color:#1a3a1a;margin-top:10px">Depois de descarregar, faz upload deste ficheiro para o repositório GitHub (substitui o index.html antigo).</p>
+        <div class="expbox" id="expbox">
+          <div class="extl">↓ Passo Final — Exportar index.html</div>
+          <p class="exnote">Para que <strong>todos os visitantes</strong> vejam o site, tens de descarregar o index.html com o Bin ID já incorporado e fazer upload para o GitHub Pages.</p>
+          <button class="btn p" id="btn-export" style="border-color:#2a5a2a;color:#3a8a3a">⬇ Descarregar index.html</button>
+          <p class="exnote" style="margin-top:10px;color:#1a3a1a">Após descarregar, faz upload para o GitHub (substitui o index.html antigo). Só precisas de fazer isto uma vez.</p>
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-title">Alterar Password</div>
-        <div class="field">
-          <label>Password Atual</label>
-          <input type="password" id="old-pass" placeholder="Password atual">
-        </div>
-        <div class="field">
-          <label>Nova Password</label>
-          <input type="password" id="new-pass" placeholder="Nova password">
-        </div>
-        <div class="field">
-          <label>Confirmar Nova Password</label>
-          <input type="password" id="confirm-pass" placeholder="Repetir nova password">
-        </div>
-        <div class="btn-row">
-          <button class="btn primary" onclick="changePassword()">Alterar Password</button>
-        </div>
-        <div class="info-chip">A password é guardada localmente no teu browser.</div>
+      <div class="sec">
+        <div class="stl">Alterar Password</div>
+        <div class="f"><label>Password Atual</label><input type="password" id="op" placeholder="Password atual"></div>
+        <div class="f"><label>Nova Password</label><input type="password" id="np" placeholder="Nova password"></div>
+        <div class="f"><label>Confirmar</label><input type="password" id="cp" placeholder="Repetir nova password"></div>
+        <div class="brow"><button class="btn p" id="btn-chpass">Alterar Password</button></div>
+        <p style="font-size:.7rem;color:#2a2a2a;letter-spacing:1px;margin-top:6px">Guardada localmente no teu browser.</p>
       </div>
 
-      <div class="section">
-        <div class="section-title">Dados Brutos</div>
-        <button class="btn" onclick="showRawData()">Ver JSON</button>
-        <pre id="raw-data" style="display:none;margin-top:12px;font-size:0.72rem;color:#333;border:1px solid var(--border);padding:14px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:300px;"></pre>
+      <div class="sec">
+        <div class="stl">Dados Brutos</div>
+        <button class="btn" id="btn-raw">Ver JSON</button>
+        <pre id="rawdata" style="display:none;margin-top:12px;font-size:.72rem;color:#333;border:1px solid var(--border);padding:14px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:300px;"></pre>
       </div>
-
     </div>
 
-  </div><!-- /content -->
-</div><!-- /app -->
+  </div>
+</div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════
-//   CONFIG
-// ════════════════════════════════════════════════════════
-const JSONBIN_KEY = '$2a$10$ufgzQUfgCs2fLK8dtBAKnuhTaok9s1.P2IwWlPX8is64S4VopQvsy';
-const DEFAULT_PASS = 'foxyadmin'; // muda isto!
-let managerPass = localStorage.getItem('mgr_pass') || DEFAULT_PASS;
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+var KEY = '$2a$10$ufgzQUfgCs2fLK8dtBAKnuhTaok9s1.P2IwWlPX8is64S4VopQvsy';
+var mpass = localStorage.getItem('mgr_pass') || 'foxyadmin';
 
-// ════════════════════════════════════════════════════════
-//   AUTH
-// ════════════════════════════════════════════════════════
-function tryLogin() {
-  const val = document.getElementById('pass-input').value;
-  if (val === managerPass) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    init();
-  } else {
-    document.getElementById('login-error').textContent = 'password incorreta';
-    document.getElementById('pass-input').value = '';
-  }
-}
-document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
-
-function doLogout() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('pass-input').value = '';
-}
-
-// ════════════════════════════════════════════════════════
-//   STATE
-// ════════════════════════════════════════════════════════
-let appData = {
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+var D = {
   post: null,
-  settings: { backgroundType: 'color', backgroundValue: '#000000' },
-  projetos: [{ id: 'p1', name: 'ARG do Lifecraft', url: 'https://foxystudio1.github.io/PC-antigo/' }],
+  settings: { backgroundType:'color', backgroundValue:'#000000', btnColor:'#aaaaaa' },
+  projetos: [{id:'p1', name:'ARG do Lifecraft', url:'https://foxystudio1.github.io/PC-antigo/'}],
   extraButtons: []
 };
 
-// ════════════════════════════════════════════════════════
-//   JSONBIN API
-// ════════════════════════════════════════════════════════
-function getBinId() { return localStorage.getItem('foxy_bin_id'); }
+// ═══════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════
+function tryLogin(){
+  var v = document.getElementById('pinput').value;
+  if(v === mpass){
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').classList.add('on');
+    appInit();
+  } else {
+    document.getElementById('lerr').textContent = 'password incorreta';
+    document.getElementById('pinput').value = '';
+  }
+}
+document.getElementById('lbtn').onclick = tryLogin;
+document.getElementById('pinput').onkeydown = function(e){ if(e.key==='Enter') tryLogin(); };
+document.getElementById('logoutbtn').onclick = function(){
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('pinput').value = '';
+};
 
-async function fetchRemote() {
-  const id = getBinId();
-  if (!id) return null;
-  try {
-    const r = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
-      headers: { 'X-Master-Key': JSONBIN_KEY }
-    });
-    if (!r.ok) return null;
-    return (await r.json()).record;
-  } catch(e) { return null; }
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.tb').forEach(function(btn){
+  btn.onclick = function(){
+    document.querySelectorAll('.tb').forEach(function(b){ b.classList.remove('on'); });
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('on'); });
+    btn.classList.add('on');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('on');
+  };
+});
+
+// ═══════════════════════════════════════════
+//  JSONBIN
+// ═══════════════════════════════════════════
+function getBinId(){ return localStorage.getItem('foxy_bin_id'); }
+
+function fetchRemote(){
+  var id = getBinId();
+  if(!id) return Promise.resolve(null);
+  return fetch('https://api.jsonbin.io/v3/b/'+id+'/latest', {headers:{'X-Master-Key':KEY}})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){ return j ? j.record : null; })
+    .catch(function(){ return null; });
 }
 
-async function pushRemote(data) {
-  const id = getBinId();
-  if (!id) { toast('Sem Bin configurado!', 'err'); return false; }
-  try {
-    const r = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
-      method: 'PUT',
-      headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return r.ok;
-  } catch(e) { return false; }
+function pushRemote(data){
+  var id = getBinId();
+  if(!id){ toast('Sem Bin configurado!','err'); return Promise.resolve(false); }
+  return fetch('https://api.jsonbin.io/v3/b/'+id, {
+    method:'PUT',
+    headers:{'X-Master-Key':KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  }).then(function(r){ return r.ok; }).catch(function(){ return false; });
 }
 
-async function initBin() {
-  const btn = document.getElementById('btn-init-bin');
+function createBin(){
+  var btn = document.getElementById('btn-initbin');
   btn.textContent = 'A criar...'; btn.disabled = true;
-  try {
-    const r = await fetch('https://api.jsonbin.io/v3/b', {
-      method: 'POST',
-      headers: {
-        'X-Master-Key': JSONBIN_KEY,
-        'Content-Type': 'application/json',
-        'X-Bin-Name': 'FoxyStudio',
-        'X-Bin-Private': 'true'
-      },
-      body: JSON.stringify(appData)
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const j = await r.json();
-    const id = j.metadata.id;
+  fetch('https://api.jsonbin.io/v3/b', {
+    method:'POST',
+    headers:{'X-Master-Key':KEY,'Content-Type':'application/json','X-Bin-Name':'FoxyStudio','X-Bin-Private':'true'},
+    body:JSON.stringify(D)
+  })
+  .then(function(r){ return r.ok ? r.json() : Promise.reject('HTTP '+r.status); })
+  .then(function(j){
+    var id = j.metadata.id;
     localStorage.setItem('foxy_bin_id', id);
     showBinStatus(id);
-    toast('Bin criado! Agora descarrega o index.html e faz upload para o GitHub.', 'ok');
-  } catch(e) {
-    toast('Erro ao criar bin: ' + e.message, 'err');
-  }
-  btn.textContent = 'Criar Bin'; btn.disabled = false;
+    toast('Bin criado! Agora descarrega o index.html abaixo.','ok');
+  })
+  .catch(function(e){ toast('Erro: '+e,'err'); })
+  .finally(function(){ btn.textContent='Criar Bin'; btn.disabled=false; });
 }
 
-function clearBin() {
-  if (!confirm('Tens a certeza? Terás de criar um novo Bin e re-exportar o index.html.')) return;
+function showBinStatus(id){
+  var box  = document.getElementById('setupbox');
+  var tl   = document.getElementById('setuptl');
+  var note = document.getElementById('setupnote');
+  var bel  = document.getElementById('binidel');
+  var exp  = document.getElementById('expbox');
+  if(id){
+    box.classList.add('ok');
+    tl.classList.add('ok');
+    tl.textContent = '✓ Bin Configurado';
+    note.textContent = 'Bin ativo. Descarrega o index.html abaixo para que todos os visitantes vejam o site.';
+    note.classList.add('ok');
+    bel.textContent = id;
+    bel.style.display = 'block';
+    exp.classList.add('on');
+    document.getElementById('btn-initbin').textContent = 'Recriar Bin';
+  } else {
+    box.classList.remove('ok');
+    tl.classList.remove('ok');
+    tl.textContent = '⚠ Sem Bin Configurado';
+    note.textContent = 'Clica em "Criar Bin" para criar o armazenamento. Só precisas de fazer isto uma vez.';
+    note.classList.remove('ok');
+    bel.style.display = 'none';
+    exp.classList.remove('on');
+    document.getElementById('btn-initbin').textContent = 'Criar Bin';
+  }
+}
+
+document.getElementById('btn-initbin').onclick = createBin;
+document.getElementById('btn-clearbin').onclick = function(){
+  if(!confirm('Tens a certeza? Precisarás de criar um novo Bin e re-exportar o index.html.')) return;
   localStorage.removeItem('foxy_bin_id');
   showBinStatus(null);
-  toast('Bin ID removido.', 'ok');
-}
+  toast('Bin ID removido.','ok');
+};
 
-function showBinStatus(id) {
-  const el = document.getElementById('bin-id-display');
-  const hint = document.getElementById('bin-hint');
-  const exportBox = document.getElementById('export-box');
-  if (id) {
-    el.style.display = 'block';
-    el.textContent = 'BIN ID: ' + id;
-    hint.textContent = '✓ Bin ativo. Descarrega o index.html abaixo para que todos os visitantes vejam o site.';
-    hint.style.color = '#2a5a2a';
-    document.getElementById('setup-box').style.borderColor = '#1a3a1a';
-    document.getElementById('setup-title-text').textContent = '✓ Bin Configurado';
-    document.getElementById('setup-title-text').style.color = '#3a7a3a';
-    document.getElementById('btn-init-bin').textContent = 'Recriar Bin';
-    exportBox.style.display = 'block';
-  } else {
-    el.style.display = 'none';
-    hint.textContent = 'Sem bin configurado. Cria um para poderes publicar conteúdo.';
-    hint.style.color = '#555';
-    document.getElementById('setup-box').style.borderColor = '#3a1515';
-    document.getElementById('setup-title-text').textContent = '⚠ Sem Bin Configurado';
-    document.getElementById('setup-title-text').style.color = '';
-    document.getElementById('btn-init-bin').textContent = 'Criar Bin';
-    exportBox.style.display = 'none';
-  }
-}
-
-// ── O index.html original (template) é guardado aqui como string ──
-// Será preenchido com o BIN_ID real ao exportar
-const INDEX_HTML_TEMPLATE = "<!DOCTYPE html>\n<html lang=\"pt\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>FoxyStudio</title>\n  <link href=\"https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap\" rel=\"stylesheet\">\n  <style>\n    :root {\n      --bg: #000000;\n      --text: #c8c8c8;\n      --accent: #8b0000;\n      --dim: #3a3a3a;\n      --glow: rgba(139,0,0,0.4);\n    }\n    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n    html, body { width:100%; height:100%; background:var(--bg); color:var(--text); font-family:'Share Tech Mono',monospace; overflow-x:hidden; }\n\n    #noise-canvas { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; opacity:0.045; mix-blend-mode:screen; }\n\n    body::after {\n      content:''; position:fixed; inset:0; pointer-events:none; z-index:2;\n      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px);\n    }\n    body::before {\n      content:''; position:fixed; inset:0; pointer-events:none; z-index:2;\n      background: radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.88) 100%);\n    }\n\n    #app {\n      position:relative; z-index:10; min-height:100vh;\n      display:flex; flex-direction:column; align-items:center; justify-content:center;\n      padding:40px 20px 120px;\n    }\n\n    #post-container {\n      max-width:680px; width:100%; text-align:center;\n      animation: flicker-in 1.4s ease forwards;\n    }\n\n    @keyframes flicker-in {\n      0%   { opacity:0; }\n      8%   { opacity:0.3; }\n      10%  { opacity:0; }\n      18%  { opacity:0.6; }\n      20%  { opacity:0.05; }\n      32%  { opacity:0.85; }\n      34%  { opacity:0.1; }\n      48%  { opacity:0.95; }\n      50%  { opacity:0.4; }\n      65%  { opacity:1; }\n      100% { opacity:1; }\n    }\n\n    .block { margin:22px 0; }\n\n    .block-text {\n      font-family:'VT323',monospace;\n      font-size:clamp(1.1rem,2.5vw,1.45rem);\n      line-height:1.75; color:var(--text);\n      text-shadow:0 0 10px rgba(200,200,200,0.18);\n      white-space:pre-wrap; word-break:break-word;\n    }\n\n    .block-image img {\n      max-width:100%; max-height:72vh; display:block; margin:0 auto;\n      filter:brightness(0.9) contrast(1.1);\n      box-shadow:0 0 60px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.8);\n    }\n\n    .block-audio { display:flex; align-items:center; gap:12px; justify-content:center; flex-wrap:wrap; }\n    .block-audio .audio-label { font-family:'VT323',monospace; font-size:1rem; color:#555; text-transform:uppercase; letter-spacing:2px; }\n    .block-audio audio { height:28px; opacity:0.6; transition:opacity 0.2s; }\n    .block-audio audio:hover { opacity:1; }\n\n    .block-progress { text-align:center; padding:8px 0; }\n    .progress-label { font-family:'VT323',monospace; font-size:0.9rem; color:#3a3a3a; text-transform:uppercase; letter-spacing:3px; margin-bottom:10px; }\n    .progress-track { width:100%; max-width:420px; height:5px; background:#0e0e0e; border:1px solid #1c1c1c; margin:0 auto; position:relative; overflow:hidden; }\n    .progress-fill { height:100%; background:linear-gradient(90deg,#3a0000,var(--accent)); box-shadow:0 0 12px var(--glow); transition:width 1.5s cubic-bezier(0.23,1,0.32,1); }\n    .progress-value { font-family:'VT323',monospace; font-size:0.82rem; color:#3a3a3a; margin-top:6px; letter-spacing:2px; }\n\n    .block-divider { width:50px; height:1px; background:#111; margin:28px auto; }\n\n    #empty-state { text-align:center; }\n    .dot-anim { font-family:'VT323',monospace; font-size:4rem; color:#141414; letter-spacing:14px; animation:pulse-dots 5s ease-in-out infinite; }\n    @keyframes pulse-dots { 0%,100%{opacity:0.15;} 50%{opacity:0.45;} }\n\n    #bottom-area {\n      position:fixed; bottom:0; left:0; right:0; z-index:20;\n      padding:18px 20px; display:flex; flex-direction:column; align-items:center; gap:9px;\n      background:linear-gradient(to top, rgba(0,0,0,0.97) 55%, transparent);\n    }\n\n    #extra-buttons { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }\n\n    .btn-extra {\n      font-family:'VT323',monospace; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase;\n      color:#383838; text-decoration:none; border:1px solid #151515; padding:4px 14px;\n      cursor:pointer; transition:all 0.2s; background:transparent;\n    }\n    .btn-extra:hover { color:#777; border-color:#2e2e2e; }\n\n    #btn-projetos {\n      font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:4px; text-transform:uppercase;\n      color: var(--btn-color, #aaaaaa);\n      border: 1px solid var(--btn-border, #666666);\n      padding:10px 38px;\n      cursor:pointer; background:transparent; transition:all 0.35s; position:relative; outline:none;\n      text-shadow: 0 0 8px var(--btn-glow, rgba(170,170,170,0.2));\n    }\n    #btn-projetos::after {\n      content:''; position:absolute; inset:-4px; border:1px solid transparent; transition:all 0.35s;\n    }\n    #btn-projetos:hover {\n      color: var(--btn-hover-color, #ffffff);\n      border-color: var(--btn-color, #aaaaaa);\n      box-shadow: 0 0 20px var(--btn-glow, rgba(170,170,170,0.12));\n      text-shadow: 0 0 16px var(--btn-glow, rgba(255,255,255,0.35));\n    }\n    #btn-projetos:hover::after { border-color: var(--btn-border, #666); }\n\n    #modal-overlay {\n      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.96); z-index:100;\n      align-items:center; justify-content:center;\n    }\n    #modal-overlay.open { display:flex; animation:fade-in 0.25s ease; }\n    @keyframes fade-in { from{opacity:0;} to{opacity:1;} }\n\n    #modal-box {\n      max-width:460px; width:90%; border:1px solid #181818; padding:36px 28px;\n      background:#020202; position:relative;\n    }\n    #modal-title { font-family:'VT323',monospace; font-size:0.9rem; letter-spacing:5px; text-transform:uppercase; color:#242424; margin-bottom:24px; text-align:center; }\n    #modal-close { position:absolute; top:12px; right:16px; font-family:'VT323',monospace; font-size:1.1rem; color:#2a2a2a; cursor:pointer; background:none; border:none; transition:color 0.2s; }\n    #modal-close:hover { color:#777; }\n\n    #projetos-list { list-style:none; }\n    #projetos-list li { border-bottom:1px solid #0c0c0c; }\n    #projetos-list li:last-child { border-bottom:none; }\n    #projetos-list a { display:block; padding:13px 0; font-family:'VT323',monospace; font-size:1.05rem; letter-spacing:2px; color:#484848; text-decoration:none; transition:all 0.2s; }\n    #projetos-list a:hover { color:var(--text); padding-left:8px; }\n  </style>\n</head>\n<body>\n  <canvas id=\"noise-canvas\"></canvas>\n\n  <div id=\"app\">\n    <div id=\"post-container\">\n      <div class=\"dot-anim\">. . .</div>\n    </div>\n  </div>\n\n  <div id=\"bottom-area\">\n    <div id=\"extra-buttons\"></div>\n    <button id=\"btn-projetos\">outros projetos</button>\n  </div>\n\n  <div id=\"modal-overlay\">\n    <div id=\"modal-box\">\n      <button id=\"modal-close\">\u2715</button>\n      <div id=\"modal-title\">Outros Projetos</div>\n      <ul id=\"projetos-list\"></ul>\n    </div>\n  </div>\n\n  <script>\n    // \u2550\u2550\u2550 CONFIG \u2550\u2550\u2550\n    const JSONBIN_KEY = '$2a$10$ufgzQUfgCs2fLK8dtBAKnuhTaok9s1.P2IwWlPX8is64S4VopQvsy';\n    const BIN_ID = '%%BIN_ID%%'; // preenchido pelo manager ao exportar\n\n    // \u2550\u2550\u2550 NOISE \u2550\u2550\u2550\n    (function() {\n      const c = document.getElementById('noise-canvas');\n      const x = c.getContext('2d');\n      function resize() { c.width = innerWidth; c.height = innerHeight; }\n      function draw() {\n        if (!c.width || !c.height) return;\n        const img = x.createImageData(c.width, c.height);\n        const d = img.data;\n        for (let i = 0; i < d.length; i += 4) {\n          const v = Math.random() * 255 | 0;\n          d[i] = d[i+1] = d[i+2] = v; d[i+3] = 20;\n        }\n        x.putImageData(img, 0, 0);\n      }\n      resize(); window.addEventListener('resize', resize);\n      setInterval(draw, 65); draw();\n    })();\n\n    // \u2550\u2550\u2550 API \u2550\u2550\u2550\n    async function fetchData() {\n      const id = BIN_ID;\n      if (!id || id === '%%BIN_ID%%') return null;\n      try {\n        const r = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {\n          headers: { 'X-Master-Key': JSONBIN_KEY }\n        });\n        if (!r.ok) return null;\n        return (await r.json()).record;\n      } catch { return null; }\n    }\n\n    // \u2550\u2550\u2550 RENDER \u2550\u2550\u2550\n    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\n    function escA(s) { return String(s||'').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); }\n\n    function renderBlock(b) {\n      switch(b.type) {\n        case 'text':\n          return `<div class=\"block block-text\">${esc(b.content)}</div>`;\n        case 'image':\n          return b.src ? `<div class=\"block block-image\"><img src=\"${escA(b.src)}\" alt=\"\" loading=\"lazy\"></div>` : '';\n        case 'audio':\n          return b.src ? `<div class=\"block block-audio\">${b.label?`<span class=\"audio-label\">${esc(b.label)}</span>`:''}<audio controls src=\"${escA(b.src)}\"></audio></div>` : '';\n        case 'progress':\n          const v = Math.min(100, Math.max(0, b.value||0));\n          return `<div class=\"block block-progress\">${b.label?`<div class=\"progress-label\">${esc(b.label)}</div>`:''}<div class=\"progress-track\"><div class=\"progress-fill\" data-val=\"${v}\" style=\"width:0%\"></div></div><div class=\"progress-value\">${v}%</div></div>`;\n        case 'divider':\n          return `<div class=\"block-divider\"></div>`;\n        default: return '';\n      }\n    }\n\n    function applySettings(s) {\n      if (!s) return;\n      if (s.backgroundType === 'image' && s.backgroundValue) {\n        document.body.style.cssText += `;background-image:url('${escA(s.backgroundValue)}');background-size:cover;background-position:center;background-attachment:fixed;`;\n      } else if (s.backgroundType === 'color' && s.backgroundValue) {\n        document.body.style.background = s.backgroundValue;\n        document.documentElement.style.setProperty('--bg', s.backgroundValue);\n      }\n      if (s.btnColor) {\n        const r = document.documentElement;\n        r.style.setProperty('--btn-color',  s.btnColor);\n        r.style.setProperty('--btn-border', s.btnColor + '99');\n        r.style.setProperty('--btn-glow',   s.btnColor + '44');\n        r.style.setProperty('--btn-hover-color', '#ffffff');\n      }\n    }\n\n    function renderPost(post) {\n      const c = document.getElementById('post-container');\n      if (!post || !post.blocks || !post.blocks.length) {\n        c.innerHTML = '<div class=\"dot-anim\">. . .</div>'; return;\n      }\n      c.innerHTML = post.blocks.map(renderBlock).join('');\n      setTimeout(() => {\n        c.querySelectorAll('.progress-fill[data-val]').forEach(el => {\n          el.style.width = el.dataset.val + '%';\n        });\n      }, 200);\n    }\n\n    function renderProjectos(list) {\n      const ul = document.getElementById('projetos-list');\n      if (!list || !list.length) {\n        ul.innerHTML = '<li style=\"font-family:VT323,monospace;color:#222;padding:12px 0;letter-spacing:2px;\">Sem projetos</li>'; return;\n      }\n      ul.innerHTML = list.map(p => `<li><a href=\"${escA(p.url)}\" target=\"_blank\" rel=\"noopener\">${esc(p.name)}</a></li>`).join('');\n    }\n\n    function renderExtraButtons(btns) {\n      const area = document.getElementById('extra-buttons');\n      area.innerHTML = (btns||[]).map(b => `<a class=\"btn-extra\" href=\"${escA(b.url)}\" target=\"_blank\" rel=\"noopener\">${esc(b.label)}</a>`).join('');\n    }\n\n    // \u2550\u2550\u2550 MODAL \u2550\u2550\u2550\n    document.getElementById('btn-projetos').onclick = () => document.getElementById('modal-overlay').classList.add('open');\n    document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');\n    document.getElementById('modal-overlay').onclick = e => { if(e.target===document.getElementById('modal-overlay')) document.getElementById('modal-overlay').classList.remove('open'); };\n    document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('modal-overlay').classList.remove('open'); });\n\n    // \u2550\u2550\u2550 INIT \u2550\u2550\u2550\n    (async () => {\n      const data = await fetchData();\n      const fallback = { projetos:[{id:'p1',name:'ARG do Lifecraft',url:'https://foxystudio1.github.io/PC-antigo/'}] };\n      const d = data || fallback;\n      applySettings(d.settings);\n      renderPost(d.post);\n      renderProjectos(d.projetos || fallback.projetos);\n      renderExtraButtons(d.extraButtons);\n    })();\n  </script>\n</body>\n</html>\n";
-        case 'image':
-          return b.src ? \`<div class="block block-image"><img src="\${escA(b.src)}" alt="" loading="lazy"></div>\` : '';
-        case 'audio':
-          return b.src ? \`<div class="block block-audio">\${b.label?\`<span class="audio-label">\${esc(b.label)}</span>\`:''}<audio controls src="\${escA(b.src)}"></audio></div>\` : '';
-        case 'progress':
-          const v = Math.min(100, Math.max(0, b.value||0));
-          return \`<div class="block block-progress">\${b.label?\`<div class="progress-label">\${esc(b.label)}</div>\`:''}<div class="progress-track"><div class="progress-fill" data-val="\${v}" style="width:0%"></div></div><div class="progress-value">\${v}%</div></div>\`;
-        case 'divider':
-          return \`<div class="block-divider"></div>\`;
-        default: return '';
-      }
-    }
-
-    function applySettings(s) {
-      if (!s) return;
-      if (s.backgroundType === 'image' && s.backgroundValue) {
-        document.body.style.cssText += \`;background-image:url('\${escA(s.backgroundValue)}');background-size:cover;background-position:center;background-attachment:fixed;\`;
-      } else if (s.backgroundType === 'color' && s.backgroundValue) {
-        document.body.style.background = s.backgroundValue;
-        document.documentElement.style.setProperty('--bg', s.backgroundValue);
-      }
-      if (s.btnColor) {
-        const r = document.documentElement;
-        r.style.setProperty('--btn-color',  s.btnColor);
-        r.style.setProperty('--btn-border', s.btnColor + '99');
-        r.style.setProperty('--btn-glow',   s.btnColor + '44');
-        r.style.setProperty('--btn-hover-color', '#ffffff');
-      }
-    }
-
-    function renderPost(post) {
-      const c = document.getElementById('post-container');
-      if (!post || !post.blocks || !post.blocks.length) {
-        c.innerHTML = '<div class="dot-anim">. . .</div>'; return;
-      }
-      c.innerHTML = post.blocks.map(renderBlock).join('');
-      setTimeout(() => {
-        c.querySelectorAll('.progress-fill[data-val]').forEach(el => {
-          el.style.width = el.dataset.val + '%';
-        });
-      }, 200);
-    }
-
-    function renderProjectos(list) {
-      const ul = document.getElementById('projetos-list');
-      if (!list || !list.length) {
-        ul.innerHTML = '<li style="font-family:VT323,monospace;color:#222;padding:12px 0;letter-spacing:2px;">Sem projetos</li>'; return;
-      }
-      ul.innerHTML = list.map(p => \`<li><a href="\${escA(p.url)}" target="_blank" rel="noopener">\${esc(p.name)}</a></li>\`).join('');
-    }
-
-    function renderExtraButtons(btns) {
-      const area = document.getElementById('extra-buttons');
-      area.innerHTML = (btns||[]).map(b => \`<a class="btn-extra" href="\${escA(b.url)}" target="_blank" rel="noopener">\${esc(b.label)}</a>\`).join('');
-    }
-
-    // ═══ MODAL ═══
-    document.getElementById('btn-projetos').onclick = () => document.getElementById('modal-overlay').classList.add('open');
-    document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');
-    document.getElementById('modal-overlay').onclick = e => { if(e.target===document.getElementById('modal-overlay')) document.getElementById('modal-overlay').classList.remove('open'); };
-    document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('modal-overlay').classList.remove('open'); });
-
-    // ═══ INIT ═══
-    (async () => {
-      const data = await fetchData();
-      const fallback = { projetos:[{id:'p1',name:'ARG do Lifecraft',url:'https://foxystudio1.github.io/PC-antigo/'}] };
-      const d = data || fallback;
-      applySettings(d.settings);
-      renderPost(d.post);
-      renderProjectos(d.projetos || fallback.projetos);
-      renderExtraButtons(d.extraButtons);
-    })();
-  </script>
-</body>
-</html>
-`;
-
-function exportIndexHtml() {
-  const id = getBinId();
-  if (!id) { toast('Sem Bin ID!', 'err'); return; }
-
-  const btn = event.target;
+// ═══════════════════════════════════════════
+//  EXPORT index.html
+// ═══════════════════════════════════════════
+document.getElementById('btn-export').onclick = function(){
+  var id = getBinId();
+  if(!id){ toast('Sem Bin ID!','err'); return; }
+  var btn = this;
   btn.textContent = 'A gerar...'; btn.disabled = true;
 
-  // Substituir o placeholder pelo BIN ID real
-  const src = INDEX_HTML_TEMPLATE.replace("const BIN_ID = '%%BIN_ID%%';", "const BIN_ID = '" + id + "';");
-
-  // Criar e descarregar ficheiro
-  const blob = new Blob([src], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  // Build index.html from scratch with real BIN id baked in
+  var html = buildIndexHtml(id);
+  var blob = new Blob([html], {type:'text/html'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
   a.href = url; a.download = 'index.html';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  toast('index.html descarregado! Faz upload para o GitHub.', 'ok');
+  toast('index.html descarregado! Faz upload para o GitHub.','ok');
   btn.textContent = '⬇ Descarregar index.html'; btn.disabled = false;
+};
+
+// ═══════════════════════════════════════════
+//  BUILD INDEX HTML (template embutido)
+// ═══════════════════════════════════════════
+function buildIndexHtml(binId){
+  var K = KEY;
+  return '<!DOCTYPE html>\n'
++'<html lang="pt">\n'
++'<head>\n'
++'  <meta charset="UTF-8">\n'
++'  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
++'  <title>FoxyStudio</title>\n'
++'  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">\n'
++'  <style>\n'
++'    :root{--bg:#000;--text:#c8c8c8;--accent:#8b0000;--btn-color:#aaaaaa;--btn-border:#666;--btn-glow:rgba(170,170,170,0.2);}\n'
++'    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}\n'
++'    html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:"Share Tech Mono",monospace;overflow-x:hidden;}\n'
++'    #noise{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.045;}\n'
++'    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);}\n'
++'    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.88) 100%);}\n'
++'    #app{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px 120px;}\n'
++'    #post{max-width:680px;width:100%;text-align:center;animation:flicker 1.4s ease forwards;}\n'
++'    @keyframes flicker{0%{opacity:0}8%{opacity:.3}10%{opacity:0}20%{opacity:.6}22%{opacity:.05}35%{opacity:.9}37%{opacity:.1}50%{opacity:.95}52%{opacity:.4}65%{opacity:1}100%{opacity:1}}\n'
++'    .blk{margin:22px 0;}\n'
++'    .blk-text{font-family:"VT323",monospace;font-size:clamp(1.1rem,2.5vw,1.45rem);line-height:1.75;color:var(--text);text-shadow:0 0 10px rgba(200,200,200,0.18);white-space:pre-wrap;word-break:break-word;}\n'
++'    .blk-image img{max-width:100%;max-height:72vh;display:block;margin:0 auto;filter:brightness(.9) contrast(1.1);box-shadow:0 0 60px rgba(0,0,0,.95);}\n'
++'    .blk-audio{display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap;}\n'
++'    .blk-audio .lbl{font-family:"VT323",monospace;font-size:1rem;color:#555;text-transform:uppercase;letter-spacing:2px;}\n'
++'    .blk-audio audio{height:28px;opacity:.6;}\n'
++'    .blk-audio audio:hover{opacity:1;}\n'
++'    .blk-prog{text-align:center;padding:8px 0;}\n'
++'    .blk-prog .plbl{font-family:"VT323",monospace;font-size:.9rem;color:#3a3a3a;text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;}\n'
++'    .blk-prog .track{width:100%;max-width:420px;height:5px;background:#0e0e0e;border:1px solid #1c1c1c;margin:0 auto;overflow:hidden;}\n'
++'    .blk-prog .fill{height:100%;background:linear-gradient(90deg,#3a0000,var(--accent));box-shadow:0 0 12px rgba(139,0,0,.4);transition:width 1.5s cubic-bezier(.23,1,.32,1);}\n'
++'    .blk-prog .pval{font-family:"VT323",monospace;font-size:.82rem;color:#3a3a3a;margin-top:6px;letter-spacing:2px;}\n'
++'    .blk-div{width:50px;height:1px;background:#111;margin:28px auto;}\n'
++'    .dots{font-family:"VT323",monospace;font-size:4rem;color:#141414;letter-spacing:14px;animation:pd 5s ease-in-out infinite;}\n'
++'    @keyframes pd{0%,100%{opacity:.15}50%{opacity:.45}}\n'
++'    #bottom{position:fixed;bottom:0;left:0;right:0;z-index:20;padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:9px;background:linear-gradient(to top,rgba(0,0,0,.97) 55%,transparent);}\n'
++'    #xbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}\n'
++'    .xbtn{font-family:"VT323",monospace;font-size:.85rem;letter-spacing:2px;text-transform:uppercase;color:#484848;text-decoration:none;border:1px solid #1e1e1e;padding:5px 14px;cursor:pointer;transition:all .2s;background:transparent;}\n'
++'    .xbtn:hover{color:#888;border-color:#333;}\n'
++'    #btnp{font-family:"VT323",monospace;font-size:1.1rem;letter-spacing:4px;text-transform:uppercase;color:var(--btn-color);border:1px solid var(--btn-border);padding:10px 38px;cursor:pointer;background:transparent;transition:all .35s;position:relative;outline:none;text-shadow:0 0 8px var(--btn-glow);}\n'
++'    #btnp::after{content:"";position:absolute;inset:-4px;border:1px solid transparent;transition:all .35s;}\n'
++'    #btnp:hover{color:#fff;border-color:var(--btn-color);box-shadow:0 0 20px var(--btn-glow);text-shadow:0 0 16px rgba(255,255,255,.35);}\n'
++'    #btnp:hover::after{border-color:var(--btn-border);}\n'
++'    #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:100;align-items:center;justify-content:center;}\n'
++'    #overlay.open{display:flex;animation:fi .25s ease;}\n'
++'    @keyframes fi{from{opacity:0}to{opacity:1}}\n'
++'    #mbox{max-width:460px;width:90%;border:1px solid #181818;padding:36px 28px;background:#020202;position:relative;}\n'
++'    #mtitle{font-family:"VT323",monospace;font-size:.9rem;letter-spacing:5px;text-transform:uppercase;color:#242424;margin-bottom:24px;text-align:center;}\n'
++'    #mclose{position:absolute;top:12px;right:16px;font-family:"VT323",monospace;font-size:1.1rem;color:#2a2a2a;cursor:pointer;background:none;border:none;transition:color .2s;}\n'
++'    #mclose:hover{color:#777;}\n'
++'    #plist{list-style:none;}\n'
++'    #plist li{border-bottom:1px solid #0c0c0c;}\n'
++'    #plist li:last-child{border-bottom:none;}\n'
++'    #plist a{display:block;padding:13px 0;font-family:"VT323",monospace;font-size:1.05rem;letter-spacing:2px;color:#484848;text-decoration:none;transition:all .2s;}\n'
++'    #plist a:hover{color:var(--text);padding-left:8px;}\n'
++'  </style>\n'
++'</head>\n'
++'<body>\n'
++'  <canvas id="noise"></canvas>\n'
++'  <div id="app"><div id="post"><div class="dots">. . .</div></div></div>\n'
++'  <div id="bottom"><div id="xbtns"></div><button id="btnp">outros projetos</button></div>\n'
++'  <div id="overlay"><div id="mbox"><button id="mclose">&#x2715;</button><div id="mtitle">Outros Projetos</div><ul id="plist"></ul></div></div>\n'
++'  <script>\n'
++'    var KEY="'+K+'";\n'
++'    var BIN="'+binId+'";\n'
++'    (function(){\n'
++'      var c=document.getElementById("noise"),x=c.getContext("2d");\n'
++'      function rs(){c.width=innerWidth;c.height=innerHeight;}\n'
++'      function dr(){if(!c.width||!c.height)return;var img=x.createImageData(c.width,c.height),d=img.data;for(var i=0;i<d.length;i+=4){var v=Math.random()*255|0;d[i]=d[i+1]=d[i+2]=v;d[i+3]=20;}x.putImageData(img,0,0);}\n'
++'      rs();addEventListener("resize",rs);setInterval(dr,65);dr();\n'
++'    })();\n'
++'    function eh(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}\n'
++'    function ea(s){return String(s||"").replace(/"/g,"&quot;");}\n'
++'    function applySettings(s){\n'
++'      if(!s)return;\n'
++'      if(s.backgroundType==="image"&&s.backgroundValue){document.body.style.backgroundImage="url("+ea(s.backgroundValue)+")";document.body.style.backgroundSize="cover";document.body.style.backgroundPosition="center";document.body.style.backgroundAttachment="fixed";}\n'
++'      else if(s.backgroundType==="color"&&s.backgroundValue){document.body.style.background=s.backgroundValue;document.documentElement.style.setProperty("--bg",s.backgroundValue);}\n'
++'      if(s.btnColor){var r=document.documentElement;r.style.setProperty("--btn-color",s.btnColor);r.style.setProperty("--btn-border",s.btnColor);}\n'
++'    }\n'
++'    function renderBlock(b){\n'
++'      if(b.type==="text")return\'<div class="blk blk-text">\'+eh(b.content||"")+\'</div>\';\n'
++'      if(b.type==="image")return b.src?\'<div class="blk blk-image"><img src="\'+ea(b.src)+\'" alt="" loading="lazy"></div>\':"" ;\n'
++'      if(b.type==="audio")return b.src?\'<div class="blk blk-audio">\'+(b.label?\'<span class="lbl">\'+eh(b.label)+\'</span>\':"")+\'<audio controls src="\'+ea(b.src)+"\\"></audio></div>":"";\n'
++'      if(b.type==="progress"){var v=Math.min(100,Math.max(0,b.value||0));return\'<div class="blk blk-prog">\'+(b.label?\'<div class="plbl">\'+eh(b.label)+\'</div>\':"")+\'<div class="track"><div class="fill" data-v="\'+v+\'" style="width:0%"></div></div><div class="pval">\'+v+\'%</div></div>\';}\n'
++'      if(b.type==="divider")return\'<div class="blk-div"></div>\';\n'
++'      return"";\n'
++'    }\n'
++'    function renderPost(post){\n'
++'      var c=document.getElementById("post");\n'
++'      if(!post||!post.blocks||!post.blocks.length){c.innerHTML=\'<div class="dots">. . .</div>\';return;}\n'
++'      c.innerHTML=post.blocks.map(renderBlock).join("");\n'
++'      setTimeout(function(){c.querySelectorAll(".fill[data-v]").forEach(function(el){el.style.width=el.dataset.v+"%";});},200);\n'
++'    }\n'
++'    function renderProjectos(list){\n'
++'      var ul=document.getElementById("plist");\n'
++'      if(!list||!list.length){ul.innerHTML=\'<li style="color:#222;font-family:VT323,monospace;padding:12px 0">Sem projetos</li>\';return;}\n'
++'      ul.innerHTML=list.map(function(p){return\'<li><a href="\'+ea(p.url)+\'" target="_blank" rel="noopener">\'+eh(p.name)+\'</a></li>\';}).join("");\n'
++'    }\n'
++'    function renderXBtns(btns){\n'
++'      var a=document.getElementById("xbtns");\n'
++'      a.innerHTML=(btns||[]).map(function(b){return\'<a class="xbtn" href="\'+ea(b.url)+\'" target="_blank" rel="noopener">\'+eh(b.label)+\'</a>\';}).join("");\n'
++'    }\n'
++'    document.getElementById("btnp").onclick=function(){document.getElementById("overlay").classList.add("open");};\n'
++'    document.getElementById("mclose").onclick=function(){document.getElementById("overlay").classList.remove("open");};\n'
++'    document.getElementById("overlay").onclick=function(e){if(e.target===this)this.classList.remove("open");};\n'
++'    document.addEventListener("keydown",function(e){if(e.key==="Escape")document.getElementById("overlay").classList.remove("open");});\n'
++'    var FALLBACK={projetos:[{id:"p1",name:"ARG do Lifecraft",url:"https://foxystudio1.github.io/PC-antigo/"}]};\n'
++'    fetch("https://api.jsonbin.io/v3/b/"+BIN+"/latest",{headers:{"X-Master-Key":KEY}})\n'
++'      .then(function(r){return r.ok?r.json():null;})\n'
++'      .then(function(j){\n'
++'        var d=j?j.record:FALLBACK;\n'
++'        applySettings(d.settings);\n'
++'        renderPost(d.post);\n'
++'        renderProjectos(d.projetos||FALLBACK.projetos);\n'
++'        renderXBtns(d.extraButtons);\n'
++'      })\n'
++'      .catch(function(){renderPost(null);renderProjectos(FALLBACK.projetos);renderXBtns([]);});\n'
++'  <\/script>\n'
++'</body>\n'
++'</html>';
 }
 
-// ════════════════════════════════════════════════════════
-//   SAVE / LOAD
-// ════════════════════════════════════════════════════════
-async function saveAll() {
-  setSaveIndicator('saving');
+// ═══════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════
+function saveAll(){
+  setSind('saving');
   collectSettings();
-  const ok = await pushRemote(appData);
-  setSaveIndicator(ok ? 'saved' : 'error');
-  toast(ok ? 'Guardado com sucesso!' : 'Erro ao guardar!', ok ? 'ok' : 'err');
-  setTimeout(() => setSaveIndicator('idle'), 3000);
-}
-
-function setSaveIndicator(state) {
-  const el = document.getElementById('save-indicator');
-  el.className = 'save-indicator';
-  if (state === 'saving') { el.classList.add('saving'); el.textContent = 'A guardar...'; }
-  else if (state === 'saved') { el.classList.add('saved'); el.textContent = '✓ Guardado'; }
-  else if (state === 'error') { el.textContent = '✕ Erro'; el.style.color='#cc2200'; }
-  else { el.textContent = '—'; }
-}
-
-async function init() {
-  showBinStatus(getBinId());
-  const remote = await fetchRemote();
-  if (remote) {
-    appData = { ...appData, ...remote };
-    // ensure arrays exist
-    if (!appData.projetos) appData.projetos = [];
-    if (!appData.extraButtons) appData.extraButtons = [];
-    if (!appData.settings) appData.settings = { backgroundType:'color', backgroundValue:'#000000' };
-  }
-  refreshPostUI();
-  refreshProjetosUI();
-  refreshExtraButtonsUI();
-  loadSettingsUI();
-}
-
-// ════════════════════════════════════════════════════════
-//   TABS
-// ════════════════════════════════════════════════════════
-function switchTab(name) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    if (b.textContent.toLowerCase().includes(name.substring(0,5))) b.classList.add('active');
+  pushRemote(D).then(function(ok){
+    setSind(ok?'saved':'err');
+    toast(ok?'Guardado!':'Erro ao guardar!', ok?'ok':'err');
+    setTimeout(function(){ setSind('idle'); }, 3000);
   });
-  // fix tab active by index
-  const names = ['publicacao','aparencia','projetos','config'];
-  const idx = names.indexOf(name);
-  document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+}
+function setSind(s){
+  var el=document.getElementById('sind');
+  el.className='';
+  if(s==='saving'){el.classList.add('saving');el.textContent='A guardar...';}
+  else if(s==='saved'){el.classList.add('saved');el.textContent='✓ Guardado';}
+  else if(s==='err'){el.style.color='#cc2200';el.textContent='✕ Erro';}
+  else{el.textContent='—';el.style.color='';}
+}
+document.getElementById('savebtn').onclick = saveAll;
+document.getElementById('btn-saveall').onclick = saveAll;
+document.getElementById('btn-saveap').onclick = saveAll;
+
+function appInit(){
+  showBinStatus(getBinId());
+  fetchRemote().then(function(remote){
+    if(remote){
+      D = Object.assign({post:null,settings:{backgroundType:'color',backgroundValue:'#000000',btnColor:'#aaaaaa'},projetos:[],extraButtons:[]}, remote);
+    }
+    refreshPostUI();
+    refreshProjetosUI();
+    refreshXBtnsUI();
+    loadSettingsUI();
+  });
 }
 
-// ════════════════════════════════════════════════════════
-//   POST MANAGEMENT
-// ════════════════════════════════════════════════════════
-function refreshPostUI() {
-  const hasPost = appData.post && appData.post.blocks && appData.post.blocks.length > 0;
-  const statusEl = document.getElementById('post-status');
-  document.getElementById('no-post-ui').style.display = hasPost ? 'none' : 'block';
-  document.getElementById('has-post-ui').style.display = hasPost ? 'block' : 'none';
-  statusEl.textContent = hasPost ? `Publicação ativa (${appData.post.blocks.length} bloco(s))` : 'Sem publicação';
-  statusEl.className = 'status-badge ' + (hasPost ? 'active-post' : 'no-post');
+// ═══════════════════════════════════════════
+//  POST
+// ═══════════════════════════════════════════
+function refreshPostUI(){
+  var has = D.post && D.post.blocks && D.post.blocks.length;
+  document.getElementById('ui-nopost').style.display = has ? 'none' : 'block';
+  document.getElementById('ui-haspost').style.display = has ? 'block' : 'none';
+  var sb = document.getElementById('pstatus');
+  sb.textContent = has ? 'Publicação ativa ('+D.post.blocks.length+' bloco(s))' : 'Sem publicação';
+  sb.className = 'sbadge' + (has?' act':'');
 }
-
-function createNewPost() {
-  appData.post = { blocks: [] };
+document.getElementById('btn-create').onclick = function(){
+  D.post = {blocks:[]};
   refreshPostUI();
-  showPostEditor();
-}
-
-function showPostEditor() {
-  document.getElementById('post-editor-section').style.display = 'block';
+  document.getElementById('editor').style.display='block';
   renderBlockList();
-}
-
-function hidePostEditor() {
-  document.getElementById('post-editor-section').style.display = 'none';
-}
-
-function deletePost() {
-  if (!confirm('Apagar a publicação do site?')) return;
-  appData.post = null;
-  hidePostEditor();
+};
+document.getElementById('btn-edit').onclick = function(){
+  document.getElementById('editor').style.display='block';
+  renderBlockList();
+};
+document.getElementById('btn-delpost').onclick = function(){
+  if(!confirm('Apagar a publicação?')) return;
+  D.post = null;
+  document.getElementById('editor').style.display='none';
   refreshPostUI();
-  toast('Publicação apagada. Guarda para aplicar.', 'ok');
-}
+  toast('Publicação apagada. Guarda para aplicar.','ok');
+};
+document.getElementById('btn-closeed').onclick = function(){
+  document.getElementById('editor').style.display='none';
+};
 
-// ════════════════════════════════════════════════════════
-//   BLOCK EDITOR
-// ════════════════════════════════════════════════════════
-let dragSrc = null;
+// ═══════════════════════════════════════════
+//  BLOCKS
+// ═══════════════════════════════════════════
+var dragSrc=null;
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+document.querySelectorAll('.badd').forEach(function(btn){
+  btn.onclick = function(){
+    if(!D.post) D.post={blocks:[]};
+    var t=btn.dataset.type, b={id:uid(),type:t};
+    if(t==='text') b.content='';
+    if(t==='image') b.src='';
+    if(t==='audio'){b.src='';b.label='';}
+    if(t==='progress'){b.label='Progresso';b.value=0;}
+    D.post.blocks.push(b);
+    renderBlockList();
+    var items=document.querySelectorAll('.bi');
+    if(items.length) openEditor(items[items.length-1]);
+  };
+});
 
-function addBlock(type) {
-  if (!appData.post) appData.post = { blocks: [] };
-  const block = { id: uid(), type };
-  if (type === 'text')     block.content = '';
-  if (type === 'image')    block.src = '';
-  if (type === 'audio')    { block.src = ''; block.label = ''; }
-  if (type === 'progress') { block.label = 'Progresso'; block.value = 0; }
-  appData.post.blocks.push(block);
-  renderBlockList();
-  // auto-open last
-  const items = document.querySelectorAll('.block-item');
-  if (items.length) openBlockEditor(items[items.length-1]);
-}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function removeBlock(id) {
-  appData.post.blocks = appData.post.blocks.filter(b => b.id !== id);
-  renderBlockList();
-  refreshPostUI();
-}
-
-function renderBlockList() {
-  const ul = document.getElementById('block-list');
-  ul.innerHTML = '';
-  if (!appData.post || !appData.post.blocks) return;
-  appData.post.blocks.forEach((block, idx) => {
-    const li = document.createElement('li');
-    li.className = 'block-item';
-    li.draggable = true;
-    li.dataset.id = block.id;
-
-    const preview = getBlockPreview(block);
-    const typeName = { text:'Texto', image:'Imagem', audio:'Áudio', progress:'Progresso', divider:'Divisor' }[block.type] || block.type;
-
-    li.innerHTML = `
-      <div class="block-header">
-        <span class="block-drag-handle" title="Arrastar">⠿</span>
-        <span class="block-type-badge">${typeName}</span>
-        <span class="block-preview">${preview}</span>
-        <div class="block-actions">
-          <button class="block-edit-btn">editar</button>
-          <button class="block-del" title="Apagar">✕</button>
-        </div>
-      </div>
-      <div class="block-editor">${buildBlockEditorHtml(block)}</div>
-    `;
-
-    li.querySelector('.block-del').onclick = e => { e.stopPropagation(); removeBlock(block.id); };
-    li.querySelector('.block-edit-btn').onclick = e => { e.stopPropagation(); toggleBlockEditor(li); };
-    li.querySelector('.block-header').onclick = () => toggleBlockEditor(li);
-
-    // Bind inputs
-    bindBlockInputs(li, block);
-
-    // Drag events
-    li.addEventListener('dragstart', e => { dragSrc = li; li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
-    li.addEventListener('dragend', () => { li.classList.remove('dragging'); document.querySelectorAll('.block-item').forEach(i=>i.classList.remove('dragover')); });
-    li.addEventListener('dragover', e => { e.preventDefault(); li.classList.add('dragover'); e.dataTransfer.dropEffect = 'move'; });
-    li.addEventListener('dragleave', () => li.classList.remove('dragover'));
-    li.addEventListener('drop', e => {
-      e.preventDefault(); li.classList.remove('dragover');
-      if (dragSrc && dragSrc !== li) {
-        const srcId = dragSrc.dataset.id;
-        const dstId = li.dataset.id;
-        const blocks = appData.post.blocks;
-        const si = blocks.findIndex(b=>b.id===srcId);
-        const di = blocks.findIndex(b=>b.id===dstId);
-        if (si > -1 && di > -1) {
-          const [moved] = blocks.splice(si, 1);
-          blocks.splice(di, 0, moved);
-          renderBlockList();
-        }
+function renderBlockList(){
+  var ul=document.getElementById('blist');
+  ul.innerHTML='';
+  if(!D.post||!D.post.blocks) return;
+  D.post.blocks.forEach(function(block){
+    var li=document.createElement('li');
+    li.className='bi'; li.draggable=true; li.dataset.id=block.id;
+    var tname={text:'Texto',image:'Imagem',audio:'Áudio',progress:'Progresso',divider:'Divisor'}[block.type]||block.type;
+    var prev=getPrev(block);
+    li.innerHTML=
+      '<div class="bihd">'
+      +'<span class="bhdl">&#8286;</span>'
+      +'<span class="btype">'+tname+'</span>'
+      +'<span class="bprev">'+esc(prev)+'</span>'
+      +'<div class="bacts"><button class="bedit">editar</button><button class="bdel">&#x2715;</button></div>'
+      +'</div>'
+      +'<div class="bed">'+buildEdHtml(block)+'</div>';
+    li.querySelector('.bdel').onclick=function(e){ e.stopPropagation(); D.post.blocks=D.post.blocks.filter(function(x){return x.id!==block.id;}); renderBlockList(); refreshPostUI(); };
+    li.querySelector('.bedit').onclick=function(e){ e.stopPropagation(); toggleEditor(li); };
+    li.querySelector('.bihd').onclick=function(){ toggleEditor(li); };
+    bindInputs(li, block);
+    li.addEventListener('dragstart',function(e){ dragSrc=li; li.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    li.addEventListener('dragend',function(){ li.classList.remove('dragging'); document.querySelectorAll('.bi').forEach(function(i){i.classList.remove('dover');}); });
+    li.addEventListener('dragover',function(e){ e.preventDefault(); li.classList.add('dover'); });
+    li.addEventListener('dragleave',function(){ li.classList.remove('dover'); });
+    li.addEventListener('drop',function(e){
+      e.preventDefault(); li.classList.remove('dover');
+      if(dragSrc&&dragSrc!==li){
+        var si=D.post.blocks.findIndex(function(x){return x.id===dragSrc.dataset.id;});
+        var di=D.post.blocks.findIndex(function(x){return x.id===li.dataset.id;});
+        if(si>-1&&di>-1){ var m=D.post.blocks.splice(si,1)[0]; D.post.blocks.splice(di,0,m); renderBlockList(); }
       }
     });
-
     ul.appendChild(li);
   });
   refreshPostUI();
 }
 
-function getBlockPreview(b) {
-  if (b.type === 'text') return esc(b.content?.slice(0,50) || '(vazio)');
-  if (b.type === 'image') return b.src ? esc(b.src.slice(0,50)+'...') : '(sem URL)';
-  if (b.type === 'audio') return b.src ? esc(b.label||b.src.slice(0,40)) : '(sem URL)';
-  if (b.type === 'progress') return `${esc(b.label||'Progresso')} — ${b.value||0}%`;
-  if (b.type === 'divider') return '———';
+function getPrev(b){
+  if(b.type==='text') return b.content?b.content.slice(0,50):'(vazio)';
+  if(b.type==='image') return b.src?b.src.slice(0,50):'(sem URL)';
+  if(b.type==='audio') return b.src?(b.label||b.src.slice(0,40)):'(sem URL)';
+  if(b.type==='progress') return (b.label||'Progresso')+' — '+(b.value||0)+'%';
+  if(b.type==='divider') return '———';
   return '';
 }
 
-function buildBlockEditorHtml(b) {
-  if (b.type === 'text') return `<div class="field"><label>Texto</label><textarea rows="5" class="be-text">${esc(b.content||'')}</textarea></div>`;
-  if (b.type === 'image') return `<div class="field"><label>URL da Imagem</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>`;
-  if (b.type === 'audio') return `
-    <div class="field"><label>URL do Áudio</label><input type="url" class="be-src" value="${escAttr(b.src||'')}" placeholder="https://..."></div>
-    <div class="field"><label>Etiqueta (opcional)</label><input type="text" class="be-label" value="${escAttr(b.label||'')}" placeholder="Ex: Tema Principal"></div>`;
-  if (b.type === 'progress') return `
-    <div class="field"><label>Etiqueta</label><input type="text" class="be-label" value="${escAttr(b.label||'Progresso')}" placeholder="Progresso"></div>
-    <div class="field"><label>Valor: <span class="be-val-label">${b.value||0}%</span></label>
-      <div class="slider-wrap">
-        <input type="range" class="be-value" min="0" max="100" step="1" value="${b.value||0}">
-        <span class="slider-val be-val-show">${b.value||0}%</span>
-      </div>
-    </div>`;
-  if (b.type === 'divider') return `<p style="color:#333;font-size:0.78rem;letter-spacing:1px">Linha divisória. Sem opções.</p>`;
+function buildEdHtml(b){
+  if(b.type==='text') return '<div class="f"><label>Texto</label><textarea rows="5" class="be-text">'+esc(b.content||'')+'</textarea></div>';
+  if(b.type==='image') return '<div class="f"><label>URL da Imagem</label><input type="url" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div>';
+  if(b.type==='audio') return '<div class="f"><label>URL do Áudio</label><input type="url" class="be-src" value="'+esc(b.src||'')+'" placeholder="https://..."></div><div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'')+'" placeholder="Ex: Tema Principal"></div>';
+  if(b.type==='progress') return '<div class="f"><label>Etiqueta</label><input type="text" class="be-label" value="'+esc(b.label||'Progresso')+'"></div><div class="f"><label>Valor: <span class="be-vl">'+(b.value||0)+'%</span></label><div class="slwrap"><input type="range" class="be-val" min="0" max="100" step="1" value="'+(b.value||0)+'"><span class="slval be-vs">'+(b.value||0)+'%</span></div></div>';
+  if(b.type==='divider') return '<p style="color:#333;font-size:.78rem;letter-spacing:1px">Linha divisória. Sem opções.</p>';
   return '';
 }
 
-function bindBlockInputs(li, block) {
-  const ed = li.querySelector('.block-editor');
-
-  const beText  = ed.querySelector('.be-text');
-  const beSrc   = ed.querySelector('.be-src');
-  const beLabel = ed.querySelector('.be-label');
-  const beVal   = ed.querySelector('.be-value');
-
-  if (beText)  beText.oninput  = () => { block.content = beText.value; li.querySelector('.block-preview').textContent = block.content.slice(0,50)||'(vazio)'; };
-  if (beSrc)   beSrc.oninput   = () => { block.src = beSrc.value; li.querySelector('.block-preview').textContent = block.src.slice(0,50)||'(sem URL)'; };
-  if (beLabel) beLabel.oninput = () => { block.label = beLabel.value; };
-
-  if (beVal) {
-    beVal.oninput = () => {
-      block.value = parseInt(beVal.value);
-      const show = ed.querySelector('.be-val-show');
-      const lblShow = ed.querySelector('.be-val-label');
-      if (show) show.textContent = block.value + '%';
-      if (lblShow) lblShow.textContent = block.value + '%';
-      li.querySelector('.block-preview').textContent = `${block.label||'Progresso'} — ${block.value}%`;
-    };
-  }
+function bindInputs(li, block){
+  var ed=li.querySelector('.bed');
+  var bt=ed.querySelector('.be-text');
+  var bs=ed.querySelector('.be-src');
+  var bl=ed.querySelector('.be-label');
+  var bv=ed.querySelector('.be-val');
+  if(bt) bt.oninput=function(){ block.content=bt.value; li.querySelector('.bprev').textContent=block.content.slice(0,50)||'(vazio)'; };
+  if(bs) bs.oninput=function(){ block.src=bs.value; li.querySelector('.bprev').textContent=block.src.slice(0,50)||'(sem URL)'; };
+  if(bl) bl.oninput=function(){ block.label=bl.value; };
+  if(bv) bv.oninput=function(){
+    block.value=parseInt(bv.value);
+    var vs=ed.querySelector('.be-vs'), vl=ed.querySelector('.be-vl');
+    if(vs) vs.textContent=block.value+'%';
+    if(vl) vl.textContent=block.value+'%';
+    li.querySelector('.bprev').textContent=(block.label||'Progresso')+' — '+block.value+'%';
+  };
 }
 
-function toggleBlockEditor(li) {
-  const ed = li.querySelector('.block-editor');
-  const isOpen = ed.classList.contains('open');
-  // close all others
-  document.querySelectorAll('.block-editor.open').forEach(e => e.classList.remove('open'));
-  if (!isOpen) ed.classList.add('open');
+function toggleEditor(li){
+  var ed=li.querySelector('.bed');
+  var isOpen=ed.classList.contains('on');
+  document.querySelectorAll('.bed.on').forEach(function(e){e.classList.remove('on');});
+  if(!isOpen) ed.classList.add('on');
 }
-function openBlockEditor(li) {
-  document.querySelectorAll('.block-editor.open').forEach(e => e.classList.remove('open'));
-  li.querySelector('.block-editor').classList.add('open');
+function openEditor(li){
+  document.querySelectorAll('.bed.on').forEach(function(e){e.classList.remove('on');});
+  li.querySelector('.bed').classList.add('on');
 }
 
-// ════════════════════════════════════════════════════════
-//   SETTINGS / APPEARANCE
-// ════════════════════════════════════════════════════════
-function loadSettingsUI() {
-  const s = appData.settings || {};
-  const t = s.backgroundType || 'color';
-  document.getElementById('bg-type').value = t;
-  if (t === 'color') {
-    document.getElementById('bg-color-pick').value = s.backgroundValue || '#000000';
-    document.getElementById('bg-color-text').value = s.backgroundValue || '#000000';
+// ═══════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════
+function loadSettingsUI(){
+  var s=D.settings||{};
+  var t=s.backgroundType||'color';
+  document.getElementById('bgtype').value=t;
+  if(t==='color'){
+    document.getElementById('bgcp').value=s.backgroundValue||'#000000';
+    document.getElementById('bgct').value=s.backgroundValue||'#000000';
   } else {
-    document.getElementById('bg-image-url').value = s.backgroundValue || '';
+    document.getElementById('bgiu').value=s.backgroundValue||'';
   }
-  const bc = s.btnColor || '#aaaaaa';
-  document.getElementById('btn-color-pick').value = bc;
-  document.getElementById('btn-color-text').value = bc;
-  updateBtnPreview(bc);
   toggleBgInput();
-  refreshExtraButtonsUI();
+  var bc=s.btnColor||'#aaaaaa';
+  document.getElementById('btncp').value=bc;
+  document.getElementById('btnct').value=bc;
+  updateBtnPrev(bc);
+  refreshXBtnsUI();
 }
+function collectSettings(){
+  var t=document.getElementById('bgtype').value;
+  var v=t==='color'?document.getElementById('bgct').value:document.getElementById('bgiu').value;
+  var bc=document.getElementById('btnct').value||'#aaaaaa';
+  D.settings={backgroundType:t,backgroundValue:v,btnColor:bc};
+}
+function toggleBgInput(){
+  var t=document.getElementById('bgtype').value;
+  document.getElementById('bgcf').style.display=t==='color'?'block':'none';
+  document.getElementById('bgif').style.display=t==='image'?'block':'none';
+}
+document.getElementById('bgtype').onchange=toggleBgInput;
+document.getElementById('bgcp').oninput=function(){ document.getElementById('bgct').value=this.value; };
+document.getElementById('bgct').oninput=function(){ if(/^#[0-9a-fA-F]{6}$/.test(this.value)) document.getElementById('bgcp').value=this.value; };
+document.getElementById('btncp').oninput=function(){ document.getElementById('btnct').value=this.value; updateBtnPrev(this.value); };
+document.getElementById('btnct').oninput=function(){ if(/^#[0-9a-fA-F]{6}$/.test(this.value)){document.getElementById('btncp').value=this.value; updateBtnPrev(this.value);} };
+function updateBtnPrev(c){ var el=document.getElementById('btnprev'); if(el){el.style.color=c;el.style.borderColor=c;} }
 
-function collectSettings() {
-  const t = document.getElementById('bg-type').value;
-  const v = t === 'color'
-    ? document.getElementById('bg-color-text').value
-    : document.getElementById('bg-image-url').value;
-  const btnColor = document.getElementById('btn-color-text').value || '#aaaaaa';
-  appData.settings = { backgroundType: t, backgroundValue: v, btnColor };
+// ═══════════════════════════════════════════
+//  EXTRA BUTTONS
+// ═══════════════════════════════════════════
+function refreshXBtnsUI(){
+  var ul=document.getElementById('xblist');
+  var btns=D.extraButtons||[];
+  ul.innerHTML=btns.length?btns.map(function(b){
+    return '<li class="litem"><span class="liname">'+esc(b.label)+'</span><span class="liurl">'+esc(b.url)+'</span><button class="lidel" data-id="'+b.id+'">&#x2715;</button></li>';
+  }).join(''):'<li style="color:#2a2a2a;font-size:.78rem;letter-spacing:1px;padding:8px 0">Sem botões</li>';
+  ul.querySelectorAll('.lidel').forEach(function(btn){
+    btn.onclick=function(){ D.extraButtons=D.extraButtons.filter(function(x){return x.id!==btn.dataset.id;}); refreshXBtnsUI(); };
+  });
 }
+document.getElementById('btn-addxb').onclick=function(){
+  var l=document.getElementById('nbl').value.trim();
+  var u=document.getElementById('nbu').value.trim();
+  if(!l||!u){toast('Preenche a etiqueta e o URL','err');return;}
+  if(!D.extraButtons) D.extraButtons=[];
+  D.extraButtons.push({id:uid(),label:l,url:u});
+  document.getElementById('nbl').value='';
+  document.getElementById('nbu').value='';
+  refreshXBtnsUI();
+  toast('Botão adicionado.','ok');
+};
 
-function toggleBgInput() {
-  const t = document.getElementById('bg-type').value;
-  document.getElementById('bg-color-field').style.display = t === 'color' ? 'block' : 'none';
-  document.getElementById('bg-image-field').style.display = t === 'image' ? 'block' : 'none';
+// ═══════════════════════════════════════════
+//  PROJETOS
+// ═══════════════════════════════════════════
+function refreshProjetosUI(){
+  var ul=document.getElementById('projlist');
+  var list=D.projetos||[];
+  ul.innerHTML=list.length?list.map(function(p){
+    return '<li class="litem"><span class="liname">'+esc(p.name)+'</span><span class="liurl">'+esc(p.url)+'</span><button class="lidel" data-id="'+p.id+'">&#x2715;</button></li>';
+  }).join(''):'<li style="color:#2a2a2a;font-size:.78rem;letter-spacing:1px;padding:8px 0">Sem projetos</li>';
+  ul.querySelectorAll('.lidel').forEach(function(btn){
+    btn.onclick=function(){ D.projetos=D.projetos.filter(function(x){return x.id!==btn.dataset.id;}); refreshProjetosUI(); };
+  });
 }
-
-function syncColorText() {
-  document.getElementById('bg-color-text').value = document.getElementById('bg-color-pick').value;
-}
-function syncColorPick() {
-  const v = document.getElementById('bg-color-text').value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('bg-color-pick').value = v;
-}
-function syncBtnColorText() {
-  const v = document.getElementById('btn-color-pick').value;
-  document.getElementById('btn-color-text').value = v;
-  updateBtnPreview(v);
-}
-function syncBtnColorPick() {
-  const v = document.getElementById('btn-color-text').value;
-  if (/^#[0-9a-fA-F]{3,6}$/.test(v)) {
-    document.getElementById('btn-color-pick').value = v;
-    updateBtnPreview(v);
-  }
-}
-function updateBtnPreview(color) {
-  const el = document.getElementById('btn-preview-label');
-  if (el) { el.style.color = color; el.style.borderColor = color; }
-}
-
-// ════════════════════════════════════════════════════════
-//   EXTRA BUTTONS
-// ════════════════════════════════════════════════════════
-function refreshExtraButtonsUI() {
-  const ul = document.getElementById('extra-btns-list');
-  const btns = appData.extraButtons || [];
-  ul.innerHTML = btns.length ? btns.map(b => `
-    <li class="btn-item">
-      <span class="btn-label">${esc(b.label)}</span>
-      <span class="btn-url">${esc(b.url)}</span>
-      <button class="btn-del" onclick="removeExtraButton('${escAttr(b.id)}')">✕</button>
-    </li>`).join('') : '<li style="color:#2a2a2a;font-size:0.78rem;letter-spacing:1px;padding:8px 0">Sem botões adicionais</li>';
-}
-
-function addExtraButton() {
-  const label = document.getElementById('new-btn-label').value.trim();
-  const url   = document.getElementById('new-btn-url').value.trim();
-  if (!label || !url) { toast('Preenche a etiqueta e o URL', 'err'); return; }
-  if (!appData.extraButtons) appData.extraButtons = [];
-  appData.extraButtons.push({ id: uid(), label, url });
-  document.getElementById('new-btn-label').value = '';
-  document.getElementById('new-btn-url').value   = '';
-  refreshExtraButtonsUI();
-  toast('Botão adicionado. Guarda para aplicar.', 'ok');
-}
-
-function removeExtraButton(id) {
-  appData.extraButtons = (appData.extraButtons||[]).filter(b => b.id !== id);
-  refreshExtraButtonsUI();
-}
-
-// ════════════════════════════════════════════════════════
-//   PROJETOS
-// ════════════════════════════════════════════════════════
-function refreshProjetosUI() {
-  const ul = document.getElementById('projetos-list-mgr');
-  const list = appData.projetos || [];
-  ul.innerHTML = list.length ? list.map(p => `
-    <li class="proj-item">
-      <span class="proj-name">${esc(p.name)}</span>
-      <span class="proj-url">${esc(p.url)}</span>
-      <button class="proj-del" onclick="removeProject('${escAttr(p.id)}')">✕</button>
-    </li>`).join('') : '<li style="color:#2a2a2a;font-size:0.78rem;letter-spacing:1px;padding:8px 0">Sem projetos</li>';
-}
-
-function addProject() {
-  const name = document.getElementById('new-proj-name').value.trim();
-  const url  = document.getElementById('new-proj-url').value.trim();
-  if (!name || !url) { toast('Preenche o nome e o URL', 'err'); return; }
-  appData.projetos.push({ id: uid(), name, url });
-  document.getElementById('new-proj-name').value = '';
-  document.getElementById('new-proj-url').value  = '';
+document.getElementById('btn-addp').onclick=function(){
+  var n=document.getElementById('npn').value.trim();
+  var u=document.getElementById('npu').value.trim();
+  if(!n||!u){toast('Preenche o nome e o URL','err');return;}
+  D.projetos.push({id:uid(),name:n,url:u});
+  document.getElementById('npn').value='';
+  document.getElementById('npu').value='';
   refreshProjetosUI();
-  toast('Projeto adicionado. Guarda para aplicar.', 'ok');
-}
+  toast('Projeto adicionado.','ok');
+};
 
-function removeProject(id) {
-  appData.projetos = appData.projetos.filter(p => p.id !== id);
-  refreshProjetosUI();
-}
+// ═══════════════════════════════════════════
+//  PASSWORD
+// ═══════════════════════════════════════════
+document.getElementById('btn-chpass').onclick=function(){
+  var o=document.getElementById('op').value;
+  var n=document.getElementById('np').value;
+  var c=document.getElementById('cp').value;
+  if(o!==mpass){toast('Password atual incorreta','err');return;}
+  if(!n){toast('Nova password vazia','err');return;}
+  if(n!==c){toast('Passwords não coincidem','err');return;}
+  mpass=n; localStorage.setItem('mgr_pass',n);
+  document.getElementById('op').value='';
+  document.getElementById('np').value='';
+  document.getElementById('cp').value='';
+  toast('Password alterada!','ok');
+};
 
-// ════════════════════════════════════════════════════════
-//   PASSWORD
-// ════════════════════════════════════════════════════════
-function changePassword() {
-  const old  = document.getElementById('old-pass').value;
-  const nw   = document.getElementById('new-pass').value;
-  const conf = document.getElementById('confirm-pass').value;
-  if (old !== managerPass) { toast('Password atual incorreta', 'err'); return; }
-  if (!nw) { toast('Nova password não pode ser vazia', 'err'); return; }
-  if (nw !== conf) { toast('As passwords não coincidem', 'err'); return; }
-  managerPass = nw;
-  localStorage.setItem('mgr_pass', nw);
-  document.getElementById('old-pass').value  = '';
-  document.getElementById('new-pass').value  = '';
-  document.getElementById('confirm-pass').value = '';
-  toast('Password alterada com sucesso!', 'ok');
-}
+// ═══════════════════════════════════════════
+//  RAW DATA
+// ═══════════════════════════════════════════
+document.getElementById('btn-raw').onclick=function(){
+  var el=document.getElementById('rawdata');
+  el.style.display=el.style.display==='none'?'block':'none';
+  if(el.style.display!=='none') el.textContent=JSON.stringify(D,null,2);
+};
 
-// ════════════════════════════════════════════════════════
-//   RAW DATA
-// ════════════════════════════════════════════════════════
-function showRawData() {
-  const el = document.getElementById('raw-data');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-  if (el.style.display !== 'none') el.textContent = JSON.stringify(appData, null, 2);
-}
-
-// ════════════════════════════════════════════════════════
-//   UTILS
-// ════════════════════════════════════════════════════════
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escAttr(s) { return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
-let toastTimer;
-function toast(msg, type='ok') {
-  clearTimeout(toastTimer);
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show ' + type;
-  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+var tt;
+function toast(msg,type){
+  clearTimeout(tt);
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='on '+(type||'ok');
+  tt=setTimeout(function(){el.className='';},2800);
 }
 </script>
 </body>
