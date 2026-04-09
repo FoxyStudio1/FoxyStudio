@@ -283,34 +283,14 @@
 
   <script>
     // ═══ BLOCK INSPECT ═══
-    // Disable right-click
     document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // Block F12, Ctrl+Shift+I/J/C/U, Ctrl+U
     document.addEventListener('keydown', e => {
       if (
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) ||
         (e.ctrlKey && ['U','u'].includes(e.key))
-      ) {
-        e.preventDefault();
-        return false;
-      }
+      ) { e.preventDefault(); return false; }
     });
-
-    // Devtools open detection (size method)
-    (function() {
-      const threshold = 160;
-      function check() {
-        if (
-          window.outerWidth - window.innerWidth > threshold ||
-          window.outerHeight - window.innerHeight > threshold
-        ) {
-          document.body.innerHTML = '';
-        }
-      }
-      setInterval(check, 1000);
-    })();
   </script>
 </body>
 </html>
