@@ -278,6 +278,17 @@
             <button class="btn" id="btn-clearbin">Resetar</button>
           </div>
         </div>
+        <div class="setupbox" style="margin-top:10px;border-color:#1a2a3a">
+          <div class="sbtl" style="color:#2a4a6a">↩ Já tens um Bin noutro PC?</div>
+          <p class="snote" style="color:#1a3a5a;margin-bottom:10px">Cola aqui o Bin ID do teu PC principal para ligares este manager ao mesmo site.</p>
+          <div class="f">
+            <label>Bin ID</label>
+            <input type="text" id="manual-bin-id" placeholder="ex: 6849a3f2e41b4d34f8..." style="font-family:'VT323',monospace;letter-spacing:2px">
+          </div>
+          <div class="brow">
+            <button class="btn" id="btn-setbin" style="border-color:#1a3a5a;color:#2a5a8a">✓ Ligar a este Bin</button>
+          </div>
+        </div>
         <div class="expbox" id="expbox">
           <div class="extl">↓ Passo Final — Exportar index.html</div>
           <p class="exnote">Para que <strong>todos os visitantes</strong> vejam o site, tens de descarregar o index.html com o Bin ID já incorporado e fazer upload para o GitHub Pages.</p>
@@ -430,6 +441,25 @@ function showBinStatus(id){
 }
 
 document.getElementById('btn-initbin').onclick = createBin;
+document.getElementById('btn-setbin').onclick = function(){
+  var id = document.getElementById('manual-bin-id').value.trim();
+  if(!id){ toast('Cola o Bin ID primeiro','err'); return; }
+  localStorage.setItem('foxy_bin_id', id);
+  showBinStatus(id);
+  document.getElementById('manual-bin-id').value = '';
+  toast('Bin ID ligado! A carregar dados...','ok');
+  // reload data from this bin
+  fetchRemote().then(function(remote){
+    if(remote){
+      D = Object.assign({post:null,settings:{backgroundType:'color',backgroundValue:'#000000',btnColor:'#aaaaaa'},projetos:[],extraButtons:[]}, remote);
+      refreshPostUI(); refreshProjetosUI(); refreshXBtnsUI(); loadSettingsUI();
+      toast('Dados carregados do Bin!','ok');
+    } else {
+      toast('Bin ligado mas sem dados ainda.','ok');
+    }
+  });
+};
+
 document.getElementById('btn-clearbin').onclick = function(){
   if(!confirm('Tens a certeza? Precisarás de criar um novo Bin e re-exportar o index.html.')) return;
   localStorage.removeItem('foxy_bin_id');
