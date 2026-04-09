@@ -48,10 +48,10 @@
     .topbar-actions { display:flex; gap:8px; align-items:center; }
     .btn-sm {
       font-family:inherit; font-size:0.75rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid var(--border); color:var(--muted);
+      background:transparent; border:1px solid #2e2e2e; color:#666;
       padding:5px 12px; cursor:pointer; transition:all 0.2s;
     }
-    .btn-sm:hover { color:var(--text); border-color:#333; }
+    .btn-sm:hover { color:var(--text); border-color:#444; }
     .btn-sm.danger:hover { color:#cc2200; border-color:#5a1010; }
     .save-indicator { font-size:0.7rem; letter-spacing:1px; color:#2a2a2a; transition:color 0.5s; }
     .save-indicator.saving { color:#555; }
@@ -91,11 +91,11 @@
     /* ─────── BUTTONS ─────── */
     .btn {
       font-family:inherit; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid var(--border); color:var(--muted);
+      background:transparent; border:1px solid #2e2e2e; color:#666;
       padding:8px 16px; cursor:pointer; transition:all 0.2s;
     }
-    .btn:hover { color:var(--text); border-color:#333; }
-    .btn.primary { border-color:#3a1515; color:#8b3030; }
+    .btn:hover { color:var(--text); border-color:#555; }
+    .btn.primary { border-color:#5a2020; color:#aa4040; }
     .btn.primary:hover { border-color:var(--accent); color:var(--acl); }
     .btn.danger { }
     .btn.danger:hover { color:#cc2200; border-color:#5a1010; }
@@ -143,10 +143,10 @@
     #add-block-bar { display:flex; gap:6px; flex-wrap:wrap; }
     .btn-add-block {
       font-family:inherit; font-size:0.72rem; letter-spacing:1px; text-transform:uppercase;
-      background:transparent; border:1px solid #1a1a1a; color:#363636;
+      background:transparent; border:1px solid #2e2e2e; color:#666;
       padding:6px 12px; cursor:pointer; transition:all 0.2s;
     }
-    .btn-add-block:hover { color:#777; border-color:#2a2a2a; }
+    .btn-add-block:hover { color:#aaa; border-color:#444; }
 
     /* ─────── STATUS BAR ─────── */
     .status-badge {
@@ -473,15 +473,21 @@ async function fetchRemote() {
 
 async function pushRemote(data) {
   const id = getBinId();
-  if (!id) { toast('Sem Bin configurado!', 'err'); return false; }
+  if (!id) { toast('Sem Bin configurado! Vai a Configuração → Inicializar Bin.', 'err'); return false; }
   try {
     const r = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
       method: 'PUT',
       headers: { 'X-Master-Key': JSONBIN_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    return r.ok;
-  } catch(e) { return false; }
+    if (!r.ok) {
+      let errMsg = `HTTP ${r.status}`;
+      try { const j = await r.json(); errMsg = j.message || errMsg; } catch {}
+      toast(`Erro ao guardar: ${errMsg}`, 'err');
+      return false;
+    }
+    return true;
+  } catch(e) { toast(`Erro de rede: ${e.message}`, 'err'); return false; }
 }
 
 async function initBin() {
@@ -544,13 +550,14 @@ async function saveAll() {
   collectSettings();
   const ok = await pushRemote(appData);
   setSaveIndicator(ok ? 'saved' : 'error');
-  toast(ok ? 'Guardado com sucesso!' : 'Erro ao guardar!', ok ? 'ok' : 'err');
+  if (ok) toast('Guardado com sucesso!', 'ok');
   setTimeout(() => setSaveIndicator('idle'), 3000);
 }
 
 function setSaveIndicator(state) {
   const el = document.getElementById('save-indicator');
   el.className = 'save-indicator';
+  el.style.color = '';
   if (state === 'saving') { el.classList.add('saving'); el.textContent = 'A guardar...'; }
   else if (state === 'saved') { el.classList.add('saved'); el.textContent = '✓ Guardado'; }
   else if (state === 'error') { el.textContent = '✕ Erro'; el.style.color='#cc2200'; }
@@ -838,10 +845,9 @@ function bindBlockInputs(li, block) {
     };
   }
 
-  // Color sync (shared by text, progress, divider)
   function applyColor(v) {
     block.color = v;
-    if (beColorPick && /^#[0-9a-fA-F]{3,6}$/.test(v)) beColorPick.value = v.length === 4 ? v : (v.length === 7 ? v : beColorPick.value);
+    if (beColorPick && /^#[0-9a-fA-F]{6}$/.test(v)) beColorPick.value = v;
     if (beColorText) beColorText.value = v;
   }
   if (beColorPick) beColorPick.oninput = () => applyColor(beColorPick.value);
